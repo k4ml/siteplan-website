@@ -49,12 +49,19 @@ Set them under *Settings → Secrets and variables → Actions*. The first succe
 creates the Worker and attaches the domain; no manual DNS record is needed, because
 `custom_domain: true` lets Cloudflare manage it.
 
+The workflow pins `wranglerVersion: "4.162.0"`. `cloudflare/wrangler-action@v3`
+defaulted to wrangler 3.90, which predates assets-only Workers and fails against this
+config with `Missing entry-point`. The action is on `@v4` and the version is pinned
+explicitly so a future action release cannot silently reintroduce that failure.
+
 To deploy from a workstation instead, build and then run Wrangler yourself:
 
 ```bash
 uv run ssg.py . _site
-npx wrangler deploy
+npx wrangler@4 deploy
 ```
+
+Wrangler 4 is required. Older releases reject a Worker that has `assets` but no `main`.
 
 ## Preview
 
