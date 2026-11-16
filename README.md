@@ -29,9 +29,32 @@ python3 scripts/check_site.py _site
 the site with `uv`, runs the checker, and uploads `_site` as a workflow artifact
 (`site`, kept 14 days). The workflow fails if the build or any check fails.
 
-Uploading the artifact is the end of the pipeline; it does not publish anywhere yet.
-Deploying to `siteplan.koditi.my` still needs Cloudflare credentials stored as
-repository secrets.
+## Deploy
+
+On a push to `main`, the `deploy` job downloads the artifact that CI built and validated,
+then publishes it with Wrangler to the `siteplan-website` Worker as static assets. The
+custom domain `siteplan.koditi.my` is declared in `wrangler.jsonc`.
+
+The deploy is skipped, and the run still succeeds, when `CLOUDFLARE_API_TOKEN` is not
+set. Pull requests never deploy.
+
+### Required repository secrets
+
+| Secret | Purpose |
+| :--- | :--- |
+| `CLOUDFLARE_API_TOKEN` | Token with **Workers Scripts: Edit** and **Zone: Edit** (plus **DNS: Edit** so the custom domain can be created) for the `koditi.my` zone. |
+| `CLOUDFLARE_ACCOUNT_ID` | The Cloudflare account id that owns the Worker. |
+
+Set them under *Settings → Secrets and variables → Actions*. The first successful run
+creates the Worker and attaches the domain; no manual DNS record is needed, because
+`custom_domain: true` lets Cloudflare manage it.
+
+To deploy from a workstation instead, build and then run Wrangler yourself:
+
+```bash
+uv run ssg.py . _site
+npx wrangler deploy
+```
 
 ## Preview
 
@@ -55,7 +78,8 @@ python3 -m http.server 8080 --directory _site
 | `assets/css/site.css` | The design system. |
 | `assets/js/site.js` | Mobile navigation. |
 | `scripts/check_site.py` | Post-build validation used by CI. |
-| `.github/workflows/build.yml` | Build, validate and upload the site. |
+| `.github/workflows/build.yml` | Build, validate, upload and deploy the site. |
+| `wrangler.jsonc` | Cloudflare Worker config: assets directory and custom domain. |
 
 Pages are root HTML with YAML front matter. `nav:` drives the active state in the header.
 

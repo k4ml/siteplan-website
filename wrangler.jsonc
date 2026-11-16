@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "siteplan-website",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./_site",
+    "html_handling": "auto-trailing-slash"
+  },
+  "routes": [
+    {
+      "pattern": "siteplan.koditi.my",
+      "custom_domain": true
+    }
+  ]
+}
