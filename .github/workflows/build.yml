@@ -77,11 +77,9 @@ jobs:
           path: _site
 
       - name: Deploy with Wrangler
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # Pinned because wrangler-action@v3 defaulted to wrangler 3.90, which
-          # predates assets-only Workers and fails with "Missing entry-point".
-          wranglerVersion: "4.162.0"
-          workingDirectory: .
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        # Pinned to wrangler 4: 3.x predates assets-only Workers and rejects a
+        # config that has `assets` but no `main` with "Missing entry-point".
+        run: npx --yes wrangler@4.162.0 deploy
