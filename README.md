@@ -12,6 +12,27 @@ uv run ssg.py . _site
 
 Requires `uv`; dependencies are declared inline in `ssg.py`.
 
+## Validate
+
+The build must pass a check before it is published. It verifies that every expected page
+exists, that every internal link and anchor resolves, that all referenced assets are
+present, that ids are unique and tags are balanced, and that no placeholder domain
+leaked into the output.
+
+```bash
+python3 scripts/check_site.py _site
+```
+
+## Continuous integration
+
+`.github/workflows/build.yml` runs on every push and pull request to `main`. It builds
+the site with `uv`, runs the checker, and uploads `_site` as a workflow artifact
+(`site`, kept 14 days). The workflow fails if the build or any check fails.
+
+Uploading the artifact is the end of the pipeline; it does not publish anywhere yet.
+Deploying to `siteplan.koditi.my` still needs Cloudflare credentials stored as
+repository secrets.
+
 ## Preview
 
 ```bash
@@ -32,7 +53,9 @@ python3 -m http.server 8080 --directory _site
 | `design.html` | G-SDUI protocol, data binding, dynamic apps, reference scenario. |
 | `vision.html` | Direction, principles and maturity. |
 | `assets/css/site.css` | The design system. |
-| `assets/js/site.js` | Mobile navigation and scroll reveal. |
+| `assets/js/site.js` | Mobile navigation. |
+| `scripts/check_site.py` | Post-build validation used by CI. |
+| `.github/workflows/build.yml` | Build, validate and upload the site. |
 
 Pages are root HTML with YAML front matter. `nav:` drives the active state in the header.
 
