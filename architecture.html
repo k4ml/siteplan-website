@@ -1,0 +1,558 @@
+---
+title: Architecture
+nav: architecture
+description: Siteplan's architecture - one Django ASGI process, Channels over Redis, a single append path with per-topic sequencing, rebuildable projections, a pluggable executor seam and two runtime adapter families.
+layout: default
+---
+<section class="hero hero--page">
+  <div class="wrap hero__grid">
+    <div>
+      <span class="eyebrow">Architecture</span>
+      <h1>One process, one schema owner, one write path.</h1>
+      <p class="hero__lede">
+        Siteplan runs as one Django project under ASGI: HTTP views, WebSocket consumers and a JSON
+        API in the same process that owns the ORM. Two deployment processes come from the same
+        image, and where an agent run executes is a policy — not a rewrite.
+      </p>
+    </div>
+    <aside class="rail">
+      <div class="rail__item">
+        <div class="rail__num">ASGI</div>
+        <div class="rail__label">HTTP + WebSocket in one app</div>
+      </div>
+      <div class="rail__item">
+        <div class="rail__num">seq</div>
+        <div class="rail__label">per-topic ordering contract</div>
+      </div>
+      <div class="rail__item">
+        <div class="rail__num">2</div>
+        <div class="rail__label">adapter families, one chunk shape</div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="section" id="decision">
+  <div class="wrap">
+    <div class="section__head section__head--wide">
+      <span class="eyebrow eyebrow--muted">The decision</span>
+      <h2>Why not a Django + FastAPI split.</h2>
+      <p>
+        The tempting shape is a realtime service in front of Django. It is rejected for a specific
+        reason: there is no missing capability that justifies a second auth plane and a second
+        migration consumer.
+      </p>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Alternative</th><th>Verdict</th><th>Reason</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Django ASGI + Channels + Ninja</td>
+            <td><span class="chip chip--red">Chosen</span></td>
+            <td>One deploy, one schema owner, one auth plane. Reuses the existing HTMX, Alpine and Tailwind stack.</td>
+          </tr>
+          <tr>
+            <td>Django + separate FastAPI service</td>
+            <td><span class="chip">Rejected</span></td>
+            <td>Adds a second auth plane, a second migration consumer and a second deploy for no missing capability.</td>
+          </tr>
+          <tr>
+            <td>WSGI with polling or SSE only</td>
+            <td><span class="chip">Rejected as primary</span></td>
+            <td>SSE is one-way and still needs Redis across instances. Polling cannot push approvals. Kept as a documented degradation path.</td>
+          </tr>
+          <tr>
+            <td>Celery for agent runs</td>
+            <td><span class="chip">Deferred</span></td>
+            <td>Postgres <code>SKIP LOCKED</code> plus a Redis wake-up is enough for the first release, and Celery can replace the worker behind the same interface.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="split" style="margin-top:44px">
+      <div>
+        <h3>A split only on a concrete trigger</h3>
+        <ul class="marks" style="margin-top:16px">
+          <li>Agent runs need a materially different scaling policy, runtime or network zone.</li>
+          <li>A non-Python agent runtime is adopted and will not be reimplemented.</li>
+          <li>Sustained load exceeds roughly ten thousand concurrent sockets per instance.</li>
+          <li>Compliance requires provider credentials and the orchestrator in an isolated service.</li>
+        </ul>
+      </div>
+      <div class="decision">
+        <strong>The executor seam turns trigger one into a policy value.</strong> A remote executor
+        is the mechanism a split would use, and it becomes reachable by adding a placement rather
+        than by moving the run loop.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--ink" id="topology">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow eyebrow--light">Topology</span>
+      <h2>One image, two processes, two data services.</h2>
+      <p>
+        Postgres is the truth. Redis carries fan-out and wakes the worker. The browser talks HTTP
+        and WebSocket to the same application.
+      </p>
+    </div>
+
+    <figure class="diagram" style="box-shadow:none;border-color:#3a3a3a">
+      <div class="diagram__bar" style="background:#232323;border-color:#3a3a3a">
+        <span class="diagram__dot"></span><span class="diagram__dot"></span><span class="diagram__dot"></span>
+        <span class="diagram__title">System topology</span>
+      </div>
+      <div class="diagram__body" style="background:#1b1b1b">
+        <svg viewBox="0 0 900 530" role="img" aria-label="Topology: the browser workspace connects over HTTP and WebSocket to a Django ASGI application that contains HTTP views, WebSocket consumers and a JSON API, all writing through one append_event function. Postgres holds the event log and projections; Redis carries fan-out; a separate agent worker process from the same image claims runs.">
+          <rect x="1" y="1" width="898" height="528" fill="none" stroke="#3a3a3a"/>
+
+          <rect x="24" y="22" width="852" height="86" fill="none" stroke="#6a6e73"/>
+          <text x="40" y="42" font-family="Red Hat Mono, monospace" font-size="8.5" fill="#9a9a9a" letter-spacing="1.4">BROWSER WORKSPACE</text>
+          <rect x="40" y="52" width="252" height="42" fill="#232323" stroke="#3a3a3a"/>
+          <text x="54" y="69" font-family="Red Hat Mono, monospace" font-size="8" fill="#ee0000" letter-spacing="1">COLUMN 1 · GLOBAL SHELL</text>
+          <text x="54" y="83" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">routes · pins · reports</text>
+          <rect x="306" y="52" width="252" height="42" fill="#232323" stroke="#3a3a3a"/>
+          <text x="320" y="69" font-family="Red Hat Mono, monospace" font-size="8" fill="#ee0000" letter-spacing="1">COLUMN 2 · CONTROL+STREAM</text>
+          <text x="320" y="83" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">chat · run logs · approvals</text>
+          <rect x="572" y="52" width="288" height="42" fill="#232323" stroke="#3a3a3a"/>
+          <text x="586" y="69" font-family="Red Hat Mono, monospace" font-size="8" fill="#ee0000" letter-spacing="1">COLUMN 3 · CANVAS</text>
+          <text x="586" y="83" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">GEN_UI · BROWSER · DIFF · LOGS</text>
+
+          <path d="M180 108 V164" fill="none" stroke="#ee0000" stroke-width="1.4"/>
+          <path d="M530 108 V164" fill="none" stroke="#ee0000" stroke-width="1.4"/>
+          <path d="M176 164 L180 170 L184 164" fill="#ee0000" stroke="none"/>
+          <path d="M526 164 L530 170 L534 164" fill="#ee0000" stroke="none"/>
+          <text x="192" y="132" font-family="Red Hat Mono, monospace" font-size="8" fill="#ee0000" letter-spacing="0.4">HTTP · Django views, Ninja</text>
+          <text x="192" y="146" font-family="Red Hat Mono, monospace" font-size="7" fill="#8a5a5a">templates, HTMX, JSON over one session</text>
+          <text x="542" y="132" font-family="Red Hat Mono, monospace" font-size="8" fill="#ee0000" letter-spacing="0.4">WebSocket · Channels</text>
+          <text x="542" y="146" font-family="Red Hat Mono, monospace" font-size="7" fill="#8a5a5a">auth · membership · replay · live</text>
+
+          <rect x="24" y="176" width="852" height="150" fill="#232323" stroke="#ee0000"/>
+          <text x="40" y="198" font-family="Red Hat Mono, monospace" font-size="9" fill="#ee0000" letter-spacing="1.4">DJANGO ASGI APPLICATION · uvicorn</text>
+
+          <rect x="44" y="212" width="244" height="42" fill="#1b1b1b" stroke="#3a3a3a"/>
+          <text x="58" y="229" font-family="Red Hat Mono, monospace" font-size="8" fill="#ffffff">HTTP views</text>
+          <text x="58" y="243" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#9a9a9a">templates + HTMX</text>
+          <rect x="304" y="212" width="244" height="42" fill="#1b1b1b" stroke="#3a3a3a"/>
+          <text x="318" y="229" font-family="Red Hat Mono, monospace" font-size="8" fill="#ffffff">WS consumers</text>
+          <text x="318" y="243" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#9a9a9a">auth · membership · replay</text>
+          <rect x="564" y="212" width="292" height="42" fill="#1b1b1b" stroke="#3a3a3a"/>
+          <text x="578" y="229" font-family="Red Hat Mono, monospace" font-size="8" fill="#ffffff">Django Ninja JSON API</text>
+          <text x="578" y="243" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#9a9a9a">canvas snapshot · actions</text>
+
+          <rect x="44" y="266" width="812" height="42" fill="#ee0000"/>
+          <text x="58" y="284" font-family="Red Hat Mono, monospace" font-size="8.5" fill="#ffffff" letter-spacing="0.8">append_event — the single write path</text>
+          <text x="58" y="298" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#ffd6d6">seq · dedupe · grants · projections · post-commit fan-out</text>
+
+          <path d="M226 326 V386" fill="none" stroke="#6a6e73" stroke-width="1.2"/>
+          <path d="M650 326 V386" fill="none" stroke="#6a6e73" stroke-width="1.2"/>
+          <path d="M222 386 L226 392 L230 386" fill="#6a6e73" stroke="none"/>
+          <path d="M646 386 L650 392 L654 386" fill="#6a6e73" stroke="none"/>
+          <text x="238" y="350" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#9a9a9a" letter-spacing="0.4">Postgres · truth</text>
+          <text x="238" y="362" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">durable before fan-out</text>
+          <text x="662" y="350" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#9a9a9a" letter-spacing="0.4">Redis · fan-out</text>
+          <text x="662" y="362" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">carries only the seq</text>
+
+          <rect x="44" y="398" width="384" height="112" fill="#232323" stroke="#6a6e73"/>
+          <text x="58" y="418" font-family="Red Hat Mono, monospace" font-size="8.5" fill="#ffffff" letter-spacing="1">POSTGRES</text>
+          <text x="58" y="434" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">event log · projections</text>
+          <text x="58" y="448" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">tenancy · agent config</text>
+          <text x="58" y="462" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">runs · objectives · artifacts</text>
+          <text x="58" y="482" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#ee0000">SKIP LOCKED claim</text>
+
+          <rect x="468" y="398" width="388" height="112" fill="#232323" stroke="#6a6e73"/>
+          <text x="482" y="418" font-family="Red Hat Mono, monospace" font-size="8.5" fill="#ffffff" letter-spacing="1">AGENT_WORKER · same image</text>
+          <text x="482" y="434" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">claims AgentRun · resolves runtime</text>
+          <text x="482" y="448" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">executes via an Executor placement</text>
+          <text x="482" y="462" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">appends events · writes run steps</text>
+          <text x="482" y="482" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#ee0000">never reaches the auth plane</text>
+        </svg>
+      </div>
+      <figcaption class="diagram__caption" style="background:#232323;border-color:#3a3a3a;color:#9a9a9a">
+        <span>New apps: siteplan_org, siteplan_agent, siteplan_dynapp</span>
+        <span>Redis is required from day one</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" id="append">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <span class="eyebrow eyebrow--muted">The event log</span>
+        <h2>One function writes events. Nothing else may.</h2>
+        <p style="margin-top:16px">
+          Every write goes through <code>append_event</code>. That is not tidiness — it is what
+          makes ordering, idempotency and authorization hold across instances.
+        </p>
+        <ul class="marks" style="margin-top:22px">
+          <li><strong>A row lock on the topic</strong> serialises writers, so <code>seq</code> is gapless and monotonic across instances.</li>
+          <li><strong>An idempotency key</strong> of <code>(topic, client_event_id)</code> returns the original event after a retry.</li>
+          <li><strong>Agent grants are checked at append time</strong>, not at prompt time, so a compromised runtime cannot escalate by emitting an event.</li>
+          <li><strong>Fan-out happens after commit</strong> and carries only the <code>seq</code>; subscribers re-read the row from Postgres.</li>
+        </ul>
+      </div>
+
+      <div>
+        <pre><code>def append_event(*, topic_id, kind, sender, payload,
+                 run=None, caused_by=None, client_event_id=None):
+    with transaction.atomic():
+        topic = Topic.objects.select_for_update().get(pk=topic_id)
+
+        if client_event_id:
+            existing = TopicEvent.objects.filter(
+                topic=topic, client_event_id=client_event_id).first()
+            if existing:
+                return existing
+
+        if sender.actor_type == "AGENT":
+            check_agent_grants(sender.agent, kind=kind, payload=payload)
+
+        topic.last_seq += 1
+        topic.save(update_fields=["last_seq"])
+        event = TopicEvent.objects.create(
+            topic=topic, seq=topic.last_seq, kind=kind, sender=sender,
+            payload=payload, run=run, caused_by=caused_by,
+            client_event_id=client_event_id)
+        apply_projections(event)
+        transaction.on_commit(lambda: fanout(topic_id, event.seq))
+    return event</code></pre>
+        <p class="small muted" style="margin-top:16px">
+          <code>created_at</code> is display metadata only. It is never used for ordering or
+          resumption — wall-clock timestamps collide and cannot support dedupe.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--paper3 section--rule" id="state">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow">Stream versus state</span>
+      <h2>The log is the truth. Everything else is a projection.</h2>
+    </div>
+
+    <div class="grid grid--3">
+      <article class="card">
+        <div class="card__index">Stream</div>
+        <h3>TopicEvent</h3>
+        <p>Append-only, and the record of what happened. Provider-neutral kinds such as TEXT, TOOL_CALL and UI_MUTATION, so an adapter replays normalised history.</p>
+      </article>
+      <article class="card">
+        <div class="card__index">State</div>
+        <h3>Canvas · CanvasVersion</h3>
+        <p>A cache of the current state at a version, keyed by a stable widget id. Rebuildable from zero with a projection rebuild command.</p>
+      </article>
+      <article class="card">
+        <div class="card__index">State</div>
+        <h3>Artifact · Pin · Task</h3>
+        <p>Projections of ARTIFACT_PUBLISHED, ARTIFACT_PINNED, ARTIFACT_UNPINNED and TASK_CHANGED — so a pin can be rebuilt and an artifact re-derived.</p>
+      </article>
+    </div>
+
+    <div class="split" style="margin-top:40px">
+      <div>
+        <h3>Resume without gaps or duplicates</h3>
+        <p class="small muted">
+          The client stores its last <code>seq</code> per topic and sends it on connect.
+        </p>
+        <div class="loop" style="margin-top:18px">
+          <div class="loop__row">
+            <div class="loop__mark">1</div>
+            <div class="loop__title">Authorise</div>
+            <div class="loop__body">The consumer checks membership, then replays <code>seq &gt; n</code> from Postgres in bounded pages.</div>
+          </div>
+          <div class="loop__row">
+            <div class="loop__mark">2</div>
+            <div class="loop__title">Join, then go live</div>
+            <div class="loop__body">The group join happens before the replay read, so an event committed during replay is never lost.</div>
+          </div>
+          <div class="loop__row">
+            <div class="loop__mark">3</div>
+            <div class="loop__title">Drop stale frames</div>
+            <div class="loop__body">Any live event at or below the last replayed <code>seq</code> is dropped. That closes the replay/live race.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3>Optimistic concurrency</h3>
+        <p class="small muted">
+          A UI mutation carries <code>base_version</code>. If it does not match the canvas's current
+          version, the append is rejected with a conflict event and the producer re-reads state.
+        </p>
+        <div class="decision" style="margin-top:20px">
+          <strong>Two agents cannot silently clobber one canvas.</strong> A conflict is an event, not
+          an exception — so the losing producer can reconcile instead of guessing.
+        </div>
+        <div class="decision decision--teal" style="margin-top:16px">
+          <strong>Large backlogs reset rather than replay.</strong> Beyond a threshold the client
+          fetches a canvas snapshot instead of the whole history.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="runtime">
+  <div class="wrap">
+    <div class="section__head section__head--wide">
+      <span class="eyebrow eyebrow--muted">Agent runtime</span>
+      <h2>Two axies that are easy to conflate: which engine, and where.</h2>
+      <p>
+        A provider adapter says which engine runs a session. It does not say where the session runs.
+        Keeping them independent is what allows the same adapter to run in-process today and in a
+        container or on a VM later — with no change to the adapter or the event pipeline.
+      </p>
+    </div>
+
+    <div class="grid grid--2">
+      <article class="card">
+        <div class="card__index">Axis one · Engine</div>
+        <h3>Runtime adapters</h3>
+        <ul class="marks">
+          <li><strong>OpenAICompatibleRuntime</strong> streams chat completions with tool calling. The tool loop is ours, so every call is grant-checked and approval-checked before execution. Billing is pay per use.</li>
+          <li><strong>CliAgentRuntime</strong> is one adapter per CLI — claude_code, opencode, hermes, commandcode. Each maps that tool's output stream to the same chunks. Billing is subscription.</li>
+        </ul>
+        <p class="small muted" style="margin-top:16px">
+          "Support CLI agents" means one adapter per tool, not one generic flag. Start with the two
+          tools the team actually uses.
+        </p>
+      </article>
+
+      <article class="card">
+        <div class="card__index">Axis two · Placement</div>
+        <h3>Executors</h3>
+        <div class="table-wrap" style="border:0">
+          <table class="data">
+            <thead><tr><th>Placement</th><th>Status</th><th>Isolation</th></tr></thead>
+            <tbody>
+              <tr><td>in_process</td><td><span class="chip chip--teal">built</span></td><td>none</td></tr>
+              <tr><td>subprocess</td><td><span class="chip chip--teal">built</span></td><td>process, same uid</td></tr>
+              <tr><td>sandboxed</td><td><span class="chip">specified</span></td><td>filesystem namespaces</td></tr>
+              <tr><td>container</td><td><span class="chip">specified</span></td><td>namespaces + cgroups</td></tr>
+              <tr><td>remote</td><td><span class="chip">specified</span></td><td>host or VM</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+
+    <div class="split" style="margin-top:40px">
+      <pre><code>@runtime_checkable
+class Executor(Protocol):
+    placement: str
+    def capabilities(self) -> PlacementCapabilities: ...
+    def start(self, session: "RunSession") -> AsyncIterator[RunChunk]: ...
+    async def cancel(self, run_id: uuid.UUID) -> None: ...
+    async def teardown(self, run_id: uuid.UUID, epoch: int) -> None: ...</code></pre>
+      <div>
+        <h3>The same chunk stream everywhere</h3>
+        <p class="small muted">
+          <code>Executor.start</code> returns an async iterator with the same shape as
+          <code>AgentRuntime.start</code>, so the worker's translate loop is identical for every
+          placement. The provider adapter never learns where it ran.
+        </p>
+        <ul class="marks" style="margin-top:18px">
+          <li><code>teardown</code> is separate from <code>cancel</code> and must succeed even when the session already died — that is what prevents orphaned containers.</li>
+          <li><code>epoch</code> numbers the attempt, so cleanup is idempotent and a stale attempt cannot delete a live one.</li>
+          <li>A boundary placement takes a serialisable envelope with a secret <em>reference</em>, never a plaintext secret.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--ink" id="placement">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <span class="eyebrow eyebrow--light">Isolation</span>
+        <h2>Local execution is a production placement, not a development scaffold.</h2>
+        <p style="margin-top:16px">
+          Siteplan is installed on-premise rather than run as SaaS. An administrator who trusts the
+          people on the box should not have to stand up a container runtime, a storage pool and an
+          image pipeline before an agent can run.
+        </p>
+        <p>
+          That choice fixes the threat model, so it is stated plainly: a subprocess is containment,
+          not a boundary. An agent holding a shell is arbitrary code execution as the worker's uid.
+          What a trusting local placement still guarantees is <strong>non-collision and the right
+          account</strong> — and each guarantee is required, not optional.
+        </p>
+      </div>
+      <div class="stack">
+        <div class="layer" style="background:#232323;border-color:#3a3a3a">
+          <div class="layer__label" style="color:#9a9a9a">Guarantee</div>
+          <div>
+            <strong style="color:#fff">A working directory per workstream, leased per run</strong>
+            <p class="small" style="color:#a8a8a8;margin:4px 0 0">One directory per topic and requester, mode 0700. Two people in a room never share a checkout, and runs within one workstream serialise instead of interleaving writes.</p>
+          </div>
+        </div>
+        <div class="layer" style="background:#232323;border-color:#3a3a3a">
+          <div class="layer__label" style="color:#9a9a9a">Guarantee</div>
+          <div>
+            <strong style="color:#fff">A home root per user, pre-authenticated by the admin</strong>
+            <p class="small" style="color:#a8a8a8;margin:4px 0 0">A run never inherits the worker's credentials. Sharing a subscription is one account provisioned into several roots; a personal subscription is one user's root with their own account.</p>
+          </div>
+        </div>
+        <div class="layer" style="background:#232323;border-color:#3a3a3a">
+          <div class="layer__label" style="color:#9a9a9a">Guarantee</div>
+          <div>
+            <strong style="color:#fff">The isolation level is visible</strong>
+            <p class="small" style="color:#a8a8a8;margin:4px 0 0">The organization's placement policy and the run's recorded placement say which guarantees are in force, so an admin cannot believe they have a boundary they do not have.</p>
+          </div>
+        </div>
+        <div class="decision" style="background:#2a1414;border-color:var(--red);color:#d8d8d8">
+          <strong style="color:#fff">A steering message is not a stop.</strong> A message aimed at a
+          running turn steers it. Stopping the turn is a separate, deliberate act — the room's red
+          hard stop, which cancels the row, frees the lease, and lets the engine author the terminal
+          event.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="resolution">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow eyebrow--muted">Resolution</span>
+      <h2>Placement and runtime are both first-match-wins chains.</h2>
+      <p>
+        Both resolve to a recorded value on the run, so an auditor can answer "which engine, and
+        where" after any config change.
+      </p>
+    </div>
+
+    <div class="split">
+      <div>
+        <h3>Runtime selection</h3>
+        <ol class="marks" style="counter-reset:none;margin-top:16px">
+          <li>An explicit selection for this run, from the UI or the API.</li>
+          <li>The active runtime binding for the topic and agent.</li>
+          <li>The agent's runtime override.</li>
+          <li>The definition's default config, then the lowest priority.</li>
+          <li>An organization runtime policy.</li>
+          <li>In future, an automatic router.</li>
+        </ol>
+        <p class="small muted" style="margin-top:16px">
+          A manual switch appends a binding and a RUNTIME_CHANGED event, so the timeline shows where
+          the engine changed. A switch never renumbers or rewrites existing events.
+        </p>
+      </div>
+      <div>
+        <h3>Placement resolution</h3>
+        <ol class="marks" style="margin-top:16px">
+          <li>An operator force from settings — the incident kill switch.</li>
+          <li>The environment profile.</li>
+          <li>The organization policy.</li>
+          <li>A validated hint on the runtime config.</li>
+          <li>The default: in-process for the API provider, subprocess for CLI.</li>
+        </ol>
+        <div class="decision" style="margin-top:18px">
+          <strong>Validation fails closed.</strong> A CLI provider may not use in-process. A
+          multi-tenant CLI run requires container or remote. An isolation floor may never fall back
+          to a weaker placement.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--paper3 section--rule" id="security">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow">Security</span>
+      <h2>Two independent axes, because one is not enough.</h2>
+    </div>
+
+    <div class="grid grid--2">
+      <article class="card">
+        <div class="card__index">Axis one</div>
+        <h3>Capability</h3>
+        <p class="mb0">"May this actor use this verb." Coarse and auditable: <code>topic.post</code>, <code>canvas.write</code>, <code>artifact.publish</code>, <code>artifact.pin</code>, <code>dataset.query</code>, <code>dynapp.write</code>, <code>task.assign</code>, <code>agent.manage</code>, <code>browser.open</code>. Default-deny, expiring, revocable — resolved by one helper called from the append path, the API endpoints and tool dispatch.</p>
+      </article>
+      <article class="card">
+        <div class="card__index">Axis two</div>
+        <h3>Data scope</h3>
+        <p class="mb0">"Which rows may this actor see." Resolved from the viewer at read time — the same membership union that defines room access — and never stored on an artifact, a pin or a grant. A membership change takes effect immediately.</p>
+      </article>
+    </div>
+
+    <div class="table-wrap" style="margin-top:32px">
+      <table class="data">
+        <thead><tr><th>Rule</th><th>Why it exists</th></tr></thead>
+        <tbody>
+          <tr><td>No <code>tool.invoke:sql</code></td><td>Arbitrary SQL turns a prompt injection into a database read. A validated dataset spec is the only path.</td></tr>
+          <tr><td>Aggregates after row filtering</td><td>A count computed before filtering leaks the existence of rows the viewer cannot read.</td></tr>
+          <tr><td>Secrets never in argv or the environment</td><td>Both are readable on a shared host and inherited by child processes.</td></tr>
+          <tr><td>BROWSER content in a sandboxed iframe</td><td>Deliberately without <code>allow-same-origin</code>, so the framed page runs on an opaque origin.</td></tr>
+          <tr><td>Approval bound to a payload hash</td><td>An approval cannot be replayed for a different action.</td></tr>
+          <tr><td>One hop for triggers</td><td>An agent may not trigger an agent, or the bill is unbounded by construction.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="roadmap">
+  <div class="wrap">
+    <div class="section__head section__head--wide">
+      <span class="eyebrow eyebrow--muted">Roadmap</span>
+      <h2>Sixteen slices, each independently verifiable.</h2>
+      <p>
+        Every step names real files and leaves the existing tests green. The first four — ASGI,
+        the event log, the actor flag and the WebSocket consumer — are the foundation everything
+        else stands on.
+      </p>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>#</th><th>Step</th><th>What is verified</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>ASGI skeleton</td><td>Existing tests pass; <code>/</code>, <code>/app/</code> and <code>/cms/</code> still serve; a ping consumer echoes.</td></tr>
+          <tr><td>2</td><td>Organization, team, room, topic, event log</td><td>Concurrent appends produce unique monotonic seq; a duplicate client event returns the original; a fork creates a child with a required subject.</td></tr>
+          <tr><td>3</td><td>Actor flag</td><td>Existing auth tests pass, and agent users cannot log in.</td></tr>
+          <tr><td>4</td><td>WebSocket consumer</td><td>Anonymous closes 4401, non-member closes 4403, reconnect resumes with no gaps or duplicates.</td></tr>
+          <tr><td>5</td><td>Agent domain</td><td>Clone copies configs and never secrets; grant expiry works; the approval state machine works.</td></tr>
+          <tr><td>6</td><td>Generative UI and canvas</td><td>Invalid payloads rejected; a patch updates one widget; every widget string is wrapped for translation.</td></tr>
+          <tr><td>7</td><td>JSON API</td><td>OpenAPI serves; tenancy is enforced; actions re-resolve against stored widgets.</td></tr>
+          <tr><td>8</td><td>Runtime and worker</td><td>A fake provider drives a run to DONE; cancellation works; SKIP LOCKED does not double-claim; steps sum to the run cost.</td></tr>
+          <tr><td>9</td><td>Executor seam and placements</td><td>A subprocess CLI run has no DATABASE_URL or REDIS_URL; a killed worker leaves no orphan.</td></tr>
+          <tr><td>10</td><td>Dynamic apps</td><td>Create a model with a relation, persist records, enforce organization scoping.</td></tr>
+          <tr><td>11</td><td>i18n and hardening</td><td><code>msgfmt --check</code> passes and no unwrapped UI strings remain.</td></tr>
+          <tr><td>12</td><td>Objectives and tasks</td><td>A task assigned to an agent creates a topic and a queued run; an objective with no linked work is visibly empty.</td></tr>
+          <tr><td>13</td><td>Artifacts and pins</td><td>Promote a canvas to a team pin, pin the same artifact org-wide, resolve per viewer, confirm a guest sees neither.</td></tr>
+          <tr><td>14</td><td>Datasets and data binding</td><td>Two viewers of one artifact receive different rows from the same pin; a query outside scope renders a permission state.</td></tr>
+          <tr><td>15</td><td>Participation and triggers</td><td>An agent is rostered, mentioned and fires on a cron; a trigger that tries to start a second run is refused.</td></tr>
+          <tr><td>16</td><td>Tool mediation and agent API</td><td>A CLI placement performs a tool call through the same dispatch; a finished run's token is rejected; no executor opens a database connection.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="small muted" style="margin-top:20px">
+      Deploy delta: one <code>REDIS_URL</code>, an ASGI web command, one <code>sync_dynamic_models</code>
+      build step, and one background worker from the same image.
+    </p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap band__inner">
+    <h2>Next: the protocol that lets an agent draw a report instead of writing HTML.</h2>
+    <div class="band__actions">
+      <a class="btn btn--red" href="/design/">Read the design</a>
+      <a class="btn btn--ghost" href="/vision/">The vision</a>
+    </div>
+  </div>
+</section>

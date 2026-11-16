@@ -1,0 +1,14 @@
+name: Siteplan
+tagline: The agent-native business application platform
+description: >-
+  Siteplan is an agent-native business application platform built on Django and
+  Wagtail. Humans and agents share one event stream, one workspace, and one
+  authorization plane — while agents get capabilities, not human permissions.
+url: https://siteplan.koditi.my
+lang: en
+author: Siteplan
+image: /assets/img/og-default.png
+permalink: /:title/
+theme_color: "#ee0000"
+exclude:
+  - README.md

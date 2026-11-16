@@ -1,0 +1,364 @@
+---
+title: Agent-native business applications
+nav: home
+description: Siteplan is a Wagtail-based platform where humans and AI agents share one event stream, one workspace and one authorization plane - so agents participate in the business, not a sidebar next to it.
+layout: default
+---
+<section class="hero">
+  <div class="wrap hero__grid">
+    <div>
+      <span class="eyebrow">Agent-native business platform</span>
+      <h1>Plan the business.<br>Agents do the work.</h1>
+      <p class="hero__lede">
+        Siteplan is a CMS and application foundation built on Django and Wagtail. It treats an
+        AI agent as a first-class actor next to a human — sharing the same event stream, the same
+        workspace and the same audit trail, while holding its own scoped authority.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--red" href="/concept/">Explore the concept</a>
+        <a class="btn btn--outline" href="/architecture/">Read the architecture</a>
+      </div>
+      <p class="hero__note">One Django ASGI process · Postgres as truth · Redis for fan-out · HTMX and Alpine on the front end</p>
+    </div>
+
+    <figure class="diagram" aria-labelledby="hero-diagram-caption">
+      <div class="diagram__bar">
+        <span class="diagram__dot"></span><span class="diagram__dot"></span><span class="diagram__dot"></span>
+        <span class="diagram__title">Workspace · three columns</span>
+      </div>
+      <div class="diagram__body">
+        <svg viewBox="0 0 620 400" role="img" aria-label="Three-column workspace: global shell with routes, pins and reports; the control and stream column with chat, run logs and approvals; and the canvas column rendering generative UI, browser, diff and logs.">
+          <rect x="0.5" y="0.5" width="619" height="399" fill="#ffffff" stroke="#d2d2d2"/>
+          <rect x="1" y="1" width="120" height="398" fill="#f4f4f4" stroke="#d2d2d2"/>
+          <rect x="121" y="1" width="270" height="398" fill="#ffffff" stroke="#d2d2d2"/>
+          <rect x="391" y="1" width="228" height="398" fill="#fafafa" stroke="#d2d2d2"/>
+
+          <rect x="0" y="0" width="620" height="26" fill="#151515"/>
+          <rect x="14" y="10" width="34" height="6" fill="#ee0000"/>
+          <rect x="56" y="10" width="54" height="6" fill="#6a6e73"/>
+          <rect x="546" y="9" width="58" height="8" fill="#3c3f42"/>
+
+          <text x="16" y="52" font-family="Red Hat Mono, monospace" font-size="8" fill="#6a6e73" letter-spacing="1.4">COLUMN 1</text>
+          <text x="16" y="68" font-family="Red Hat Display, sans-serif" font-size="11" font-weight="700" fill="#151515">Global shell</text>
+          <rect x="14" y="82" width="94" height="18" fill="#151515"/>
+          <rect x="22" y="89" width="40" height="4" fill="#ffffff"/>
+          <rect x="14" y="106" width="94" height="16" fill="#ffffff" stroke="#d2d2d2"/>
+          <rect x="22" y="112" width="52" height="4" fill="#6a6e73"/>
+          <rect x="14" y="128" width="94" height="16" fill="#ffffff" stroke="#d2d2d2"/>
+          <rect x="22" y="134" width="62" height="4" fill="#6a6e73"/>
+          <rect x="14" y="150" width="94" height="16" fill="#ffffff" stroke="#d2d2d2"/>
+          <rect x="22" y="156" width="44" height="4" fill="#6a6e73"/>
+
+          <rect x="16" y="186" width="90" height="1" fill="#d2d2d2"/>
+          <text x="16" y="204" font-family="Red Hat Mono, monospace" font-size="7" fill="#ee0000" letter-spacing="1.2">PINNED ARTIFACTS</text>
+          <rect x="14" y="214" width="94" height="26" fill="#fdf2f2" stroke="#ee0000"/>
+          <rect x="22" y="221" width="8" height="8" fill="#ee0000"/>
+          <rect x="36" y="222" width="48" height="4" fill="#151515"/>
+          <rect x="22" y="231" width="60" height="3" fill="#b06a6a"/>
+          <rect x="14" y="248" width="94" height="26" fill="#ffffff" stroke="#d2d2d2"/>
+          <rect x="22" y="255" width="8" height="8" fill="#005f60"/>
+          <rect x="36" y="256" width="42" height="4" fill="#151515"/>
+          <rect x="22" y="265" width="54" height="3" fill="#a9a9a9"/>
+          <rect x="14" y="282" width="94" height="26" fill="#ffffff" stroke="#d2d2d2"/>
+          <rect x="22" y="289" width="8" height="8" fill="#c58c00"/>
+          <rect x="36" y="290" width="50" height="4" fill="#151515"/>
+          <rect x="22" y="299" width="46" height="3" fill="#a9a9a9"/>
+
+          <text x="137" y="52" font-family="Red Hat Mono, monospace" font-size="8" fill="#6a6e73" letter-spacing="1.4">COLUMN 2</text>
+          <text x="137" y="68" font-family="Red Hat Display, sans-serif" font-size="11" font-weight="700" fill="#151515">Control and stream</text>
+          <rect x="136" y="82" width="240" height="34" fill="#ffffff" stroke="#d2d2d2"/>
+          <circle cx="152" cy="99" r="8" fill="#005f60"/>
+          <rect x="166" y="92" width="86" height="4" fill="#151515"/>
+          <rect x="166" y="101" width="150" height="4" fill="#a9a9a9"/>
+          <rect x="136" y="124" width="240" height="52" fill="#fafafa" stroke="#d2d2d2"/>
+          <circle cx="152" cy="141" r="8" fill="#151515"/>
+          <rect x="166" y="134" width="60" height="4" fill="#151515"/>
+          <rect x="166" y="143" width="190" height="4" fill="#a9a9a9"/>
+          <rect x="166" y="152" width="164" height="4" fill="#a9a9a9"/>
+          <rect x="166" y="161" width="120" height="4" fill="#a9a9a9"/>
+
+          <rect x="136" y="186" width="240" height="44" fill="#ffffff" stroke="#ee0000"/>
+          <text x="148" y="202" font-family="Red Hat Mono, monospace" font-size="7" fill="#ee0000" letter-spacing="1">APPROVAL REQUESTED</text>
+          <rect x="148" y="208" width="118" height="4" fill="#151515"/>
+          <rect x="148" y="216" width="80" height="4" fill="#a9a9a9"/>
+          <rect x="292" y="205" width="34" height="14" fill="#ee0000"/>
+          <rect x="332" y="205" width="34" height="14" fill="#ffffff" stroke="#151515"/>
+
+          <rect x="136" y="240" width="240" height="30" fill="#fafafa" stroke="#d2d2d2"/>
+          <text x="148" y="259" font-family="Red Hat Mono, monospace" font-size="7" fill="#005f60" letter-spacing="1">RUN · DONE · 12.4K TOKENS</text>
+
+          <rect x="136" y="326" width="240" height="58" fill="#ffffff" stroke="#151515"/>
+          <rect x="148" y="338" width="164" height="4" fill="#d2d2d2"/>
+          <rect x="148" y="348" width="120" height="4" fill="#d2d2d2"/>
+          <rect x="296" y="362" width="68" height="14" fill="#ee0000"/>
+          <rect x="312" y="367" width="36" height="4" fill="#ffffff"/>
+
+          <text x="407" y="52" font-family="Red Hat Mono, monospace" font-size="8" fill="#6a6e73" letter-spacing="1.4">COLUMN 3</text>
+          <text x="407" y="68" font-family="Red Hat Display, sans-serif" font-size="11" font-weight="700" fill="#151515">Canvas</text>
+          <rect x="406" y="82" width="180" height="18" fill="#ffffff" stroke="#d2d2d2"/>
+          <text x="414" y="94" font-family="Red Hat Mono, monospace" font-size="7" fill="#151515" letter-spacing="0.6">GEN_UI  BROWSER  DIFF  LOGS</text>
+
+          <rect x="406" y="110" width="180" height="88" fill="#ffffff" stroke="#d2d2d2"/>
+          <rect x="406" y="110" width="180" height="14" fill="#f4f4f4"/>
+          <text x="414" y="120" font-family="Red Hat Mono, monospace" font-size="6.5" fill="#6a6e73" letter-spacing="0.6">VOLUME BY REGION</text>
+          <rect x="414" y="134" width="46" height="5" fill="#ee0000"/>
+          <rect x="462" y="134" width="112" height="5" fill="#d2d2d2"/>
+          <rect x="414" y="146" width="78" height="5" fill="#ee0000" opacity="0.75"/>
+          <rect x="494" y="146" width="80" height="5" fill="#d2d2d2"/>
+          <rect x="414" y="158" width="34" height="5" fill="#ee0000" opacity="0.5"/>
+          <rect x="450" y="158" width="124" height="5" fill="#d2d2d2"/>
+          <rect x="414" y="170" width="96" height="5" fill="#005f60"/>
+          <rect x="512" y="170" width="62" height="5" fill="#d2d2d2"/>
+          <rect x="414" y="184" width="56" height="3" fill="#a9a9a9"/>
+          <rect x="540" y="184" width="34" height="3" fill="#a9a9a9"/>
+
+          <rect x="406" y="208" width="180" height="66" fill="#ffffff" stroke="#d2d2d2"/>
+          <rect x="414" y="218" width="60" height="4" fill="#151515"/>
+          <rect x="414" y="230" width="164" height="1" fill="#d2d2d2"/>
+          <rect x="414" y="238" width="46" height="4" fill="#a9a9a9"/>
+          <rect x="470" y="238" width="60" height="4" fill="#151515"/>
+          <rect x="414" y="250" width="56" height="4" fill="#a9a9a9"/>
+          <rect x="470" y="250" width="42" height="4" fill="#151515"/>
+          <rect x="414" y="262" width="96" height="4" fill="#a9a9a9"/>
+          <rect x="470" y="262" width="72" height="4" fill="#151515"/>
+
+          <rect x="406" y="284" width="180" height="46" fill="#151515"/>
+          <text x="414" y="298" font-family="Red Hat Mono, monospace" font-size="6.5" fill="#ee0000" letter-spacing="0.8">ARTIFACT v2</text>
+          <rect x="414" y="306" width="120" height="3" fill="#6a6e73"/>
+          <rect x="414" y="314" width="94" height="3" fill="#6a6e73"/>
+        </svg>
+      </div>
+      <figcaption class="diagram__caption" id="hero-diagram-caption">
+        <span>Routes · stream · canvas</span>
+        <span>Server-rendered fragments</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow eyebrow--muted">The problem</span>
+      <h2>A chat box bolted onto a form is not an agent-native product.</h2>
+      <p>
+        Most "AI features" in business software are a sidebar: the agent cannot see the work, cannot
+        act on it, and leaves no accountable trace. Siteplan starts from the opposite premise — the
+        agent is an actor in the system, with identity, permissions, limits and an audit record.
+      </p>
+    </div>
+
+    <div class="grid grid--3">
+      <article class="card">
+        <div class="card__rule"></div>
+        <h3>Separate the stream from the state</h3>
+        <p>The event log records what happened. Canvases, artifacts, tasks and pins are rebuildable projections of it — never the other way round.</p>
+      </article>
+      <article class="card">
+        <div class="card__rule"></div>
+        <h3>Give agents capabilities, not logins</h3>
+        <p>Agents never authenticate, never receive staff flags and never hold a socket. They are invoked, checked at append time, and granted coarse, expiring capabilities.</p>
+      </article>
+      <article class="card">
+        <div class="card__rule"></div>
+        <h3>Make the output durable</h3>
+        <p>A conversation ends. An artifact does not. Publishing promotes a canvas version into a pinned, refreshable, viewer-scoped report that outlives the topic that produced it.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section section--paper3 section--rule">
+  <div class="wrap">
+    <div class="split split--end">
+      <div class="section__head" style="margin-bottom:0">
+        <span class="eyebrow">The workspace</span>
+        <h2>Three columns, one continuous piece of work.</h2>
+        <p>
+          The shell never becomes a wall of chat. Column one is where things live, column two is how
+          work happens, and column three is what the work produced.
+        </p>
+        <ul class="marks" style="margin-top:26px">
+          <li><strong>Global shell</strong> — routes, rooms, pinned artifacts and reports.</li>
+          <li><strong>Control and stream</strong> — the topic log, run activity and approvals.</li>
+          <li><strong>Canvas</strong> — generative UI, browser, diff and log views of the current state.</li>
+        </ul>
+      </div>
+
+      <div class="layers">
+        <div class="layer layer--accent">
+          <div class="layer__label">Column 1</div>
+          <div>
+            <strong>Global shell</strong>
+            <div class="layer__chips" style="margin-top:10px">
+              <span class="chip">routes</span><span class="chip">rooms</span>
+              <span class="chip chip--red">pinned artifacts</span><span class="chip">saved views</span>
+            </div>
+          </div>
+        </div>
+        <div class="layer layer--accent">
+          <div class="layer__label">Column 2</div>
+          <div>
+            <strong>Control and stream</strong>
+            <div class="layer__chips" style="margin-top:10px">
+              <span class="chip">topic tree</span><span class="chip">run log</span>
+              <span class="chip chip--red">approvals</span><span class="chip">composer</span>
+            </div>
+          </div>
+        </div>
+        <div class="layer layer--accent">
+          <div class="layer__label">Column 3</div>
+          <div>
+            <strong>Canvas</strong>
+            <div class="layer__chips" style="margin-top:10px">
+              <span class="chip chip--teal">GEN_UI</span><span class="chip">BROWSER</span>
+              <span class="chip">DIFF</span><span class="chip">LOGS</span>
+            </div>
+          </div>
+        </div>
+        <div class="decision">
+          <strong>One shell, three lifetimes.</strong> A canvas is scratch state, an artifact is durable
+          content, and a pin is a placement. Conflating them is how chat products lose the work.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section__head section__head--wide">
+      <span class="eyebrow eyebrow--muted">The central loop</span>
+      <h2>From a missing report to a first-class artifact.</h2>
+      <p>
+        This is the acceptance scenario the whole design is written against. If a step needs a
+        concept the domain model does not have, the model is wrong — not the scenario.
+      </p>
+    </div>
+
+    <div class="loop">
+      <div class="loop__row">
+        <div class="loop__mark">01</div>
+        <div class="loop__title">Ask for work, not a chat</div>
+        <div class="loop__body">A task is created in a room, assigned to an agent <em>user</em>, and linked to a measurable objective. The assignee is a <code>User</code>, so assigning work to an agent is the same operation as assigning it to a colleague.</div>
+      </div>
+      <div class="loop__row">
+        <div class="loop__mark">02</div>
+        <div class="loop__title">Query data without SQL</div>
+        <div class="loop__body">The agent requests a dataset by id. The server checks its capability, intersects the agent's data scope with the requester's, and executes a validated spec — never a query string.</div>
+      </div>
+      <div class="loop__row">
+        <div class="loop__mark">03</div>
+        <div class="loop__title">Author on the canvas</div>
+        <div class="loop__body">The agent emits a generative UI mutation whose widget binds to that dataset. The server renders the fragment, appends the event, and the canvas becomes a version.</div>
+      </div>
+      <div class="loop__row">
+        <div class="loop__mark">04</div>
+        <div class="loop__title">Publish a version</div>
+        <div class="loop__body">Publishing promotes the canvas version into an <code>ArtifactVersion</code> and appends <code>ARTIFACT_PUBLISHED</code>. The canvas is not consumed, so refinement continues.</div>
+      </div>
+      <div class="loop__row">
+        <div class="loop__mark">05</div>
+        <div class="loop__title">Pin a placement</div>
+        <div class="loop__body">A pin references the artifact, not a version. Pin the same artifact to a team and to the whole organization and both placements follow the newest version.</div>
+      </div>
+      <div class="loop__row">
+        <div class="loop__mark">06</div>
+        <div class="loop__title">Render per viewer</div>
+        <div class="loop__body">The report refreshes on a schedule. Every viewer's rows are resolved as <em>that viewer</em>, so two people opening the same pin can legitimately see different data — and a pin never grants access.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--ink">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <span class="eyebrow eyebrow--light">Position</span>
+        <h2>The platform is the plan, not the prompt.</h2>
+        <p style="margin-top:18px">
+          Siteplan is installed on-premise and built as a foundation, not a hosted toy. The
+          architecture is chosen so that the same application can run locally under a trusting
+          administrator, in a sandbox, in a container, or on a remote VM — by policy, not by rewrite.
+        </p>
+        <p>
+          Agents are powerful because they are bounded. Every irreversible action is approval-gated,
+          every run is attributed to a human owner, and every tool call passes through one mediated
+          dispatch.
+        </p>
+        <a class="btn btn--outline" href="/vision/" style="margin-top:18px">Read the vision</a>
+      </div>
+
+      <div class="diagram" style="box-shadow:none">
+        <div class="diagram__bar" style="background:#232323;border-color:#3a3a3a">
+          <span class="diagram__dot"></span><span class="diagram__dot"></span><span class="diagram__dot"></span>
+          <span class="diagram__title">Trust is layered</span>
+        </div>
+        <div class="diagram__body" style="background:#1b1b1b">
+          <svg viewBox="0 0 420 300" role="img" aria-label="Nested containment layers from the organization policy down to a single run's working directory.">
+            <rect x="1" y="1" width="418" height="298" fill="none" stroke="#3a3a3a"/>
+            <text x="16" y="26" font-family="Red Hat Mono, monospace" font-size="9" fill="#ee0000" letter-spacing="1.2">ORGANIZATION POLICY</text>
+            <rect x="16" y="38" width="388" height="244" fill="none" stroke="#ee0000" stroke-dasharray="4 4"/>
+            <text x="32" y="60" font-family="Red Hat Mono, monospace" font-size="9" fill="#9a9a9a" letter-spacing="1.2">AGENT GRANTS · EXPIRING CAPABILITIES</text>
+            <rect x="32" y="72" width="356" height="194" fill="none" stroke="#6a6e73" stroke-dasharray="4 4"/>
+            <text x="48" y="94" font-family="Red Hat Mono, monospace" font-size="9" fill="#9a9a9a" letter-spacing="1.2">PLACEMENT</text>
+            <rect x="48" y="106" width="324" height="144" fill="none" stroke="#6a6e73"/>
+            <text x="64" y="128" font-family="Red Hat Mono, monospace" font-size="9" fill="#ffffff" letter-spacing="1.2">RUN · WORKDIR + HOME ROOT</text>
+            <rect x="64" y="140" width="292" height="94" fill="#232323" stroke="#3a3a3a"/>
+            <text x="80" y="162" font-family="Red Hat Mono, monospace" font-size="8" fill="#ee0000" letter-spacing="1">DATASET · QUERY AS VIEWER</text>
+            <text x="80" y="180" font-family="Red Hat Mono, monospace" font-size="8" fill="#b8b8b8" letter-spacing="1">MEDIATED TOOL DISPATCH</text>
+            <text x="80" y="198" font-family="Red Hat Mono, monospace" font-size="8" fill="#b8b8b8" letter-spacing="1">APPROVAL REQUIRED</text>
+            <text x="80" y="216" font-family="Red Hat Mono, monospace" font-size="8" fill="#b8b8b8" letter-spacing="1">RUN-SCOPED TOKEN</text>
+            <rect x="64" y="256" width="140" height="1" fill="#3a3a3a"/>
+            <text x="64" y="272" font-family="Red Hat Mono, monospace" font-size="8" fill="#6a6e73" letter-spacing="1">DEFAULT DENY</text>
+          </svg>
+        </div>
+        <div class="diagram__caption" style="background:#232323;border-color:#3a3a3a;color:#9a9a9a">
+          <span>Capability · data scope</span><span>Placement · isolation</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow eyebrow--muted">Explore the design</span>
+      <h2>Four ways into the system.</h2>
+    </div>
+    <div class="grid grid--2">
+      <a class="card card--link" href="/concept/">
+        <div class="card__index">01 · Concept</div>
+        <h3>Why agent-native is a different product</h3>
+        <p>The actor model, the topic tree, the product layer, and the single loop that ties a request to a durable artifact.</p>
+      </a>
+      <a class="card card--link" href="/architecture/">
+        <div class="card__index">02 · Architecture</div>
+        <h3>One ASGI process, one schema owner</h3>
+        <p>Django ASGI, Channels, the append path, projections, the executor seam, and the two runtime families.</p>
+      </a>
+      <a class="card card--link" href="/design/">
+        <div class="card__index">03 · Design</div>
+        <h3>Generative UI, datasets, and the workspace</h3>
+        <p>The versioned widget protocol, stable widget identity, i18n keys, data binding, and the reference scenario end to end.</p>
+      </a>
+      <a class="card card--link" href="/vision/">
+        <div class="card__index">04 · Vision</div>
+        <h3>Where this goes next</h3>
+        <p>Pluggable runtimes, policy-driven placement, governed dynamic apps, and the principles that decide every trade-off.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap band__inner">
+    <h2>An organization, its teams, its rooms — and agents that earn their place.</h2>
+    <div class="band__actions">
+      <a class="btn btn--red" href="/concept/">Start with the concept</a>
+      <a class="btn btn--ghost" href="/architecture/#roadmap">See the roadmap</a>
+    </div>
+  </div>
+</section>

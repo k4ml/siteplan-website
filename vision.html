@@ -1,0 +1,275 @@
+---
+title: Vision
+nav: vision
+description: Where Siteplan is going - runtime switching, policy-driven placement, governed dynamic apps, and the design principles that decide every trade-off along the way.
+layout: default
+---
+<section class="hero hero--page">
+  <div class="wrap hero__grid">
+    <div>
+      <span class="eyebrow">Vision</span>
+      <h1>Software that can be asked for, and can answer for itself.</h1>
+      <p class="hero__lede">
+        The end state is not a chatbot in a business app. It is a business app where the durable
+        outputs — reports, views, documents, data models — can be requested in language, produced
+        under supervision, and then live on as first-class objects that anyone can find, trust and
+        reuse.
+      </p>
+    </div>
+    <aside class="rail">
+      <div class="rail__item">
+        <div class="rail__num">On-prem</div>
+        <div class="rail__label">installed, not hosted — the admin holds the keys</div>
+      </div>
+      <div class="rail__item">
+        <div class="rail__num">Policy</div>
+        <div class="rail__label">isolation is a decision, not a code path</div>
+      </div>
+      <div class="rail__item">
+        <div class="rail__num">Portable</div>
+        <div class="rail__label">conversations move between engines</div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section__head section__head--wide">
+      <span class="eyebrow eyebrow--muted">The bet</span>
+      <h2>Business software has always been constrained by who could build the thing.</h2>
+      <p>
+        A CMS lets a team publish a page. A spreadsheet lets an analyst build a model. But "a report
+        that breaks down by region and refreshes every Monday, scoped to whoever is looking at it"
+        has always needed an engineer. The compounding waste is not the coding — it is that the
+        answer is never captured as a thing. It lives in a chat, a slide, or someone's memory.
+      </p>
+    </div>
+
+    <div class="grid grid--2">
+      <article class="card">
+        <div class="card__index">Today</div>
+        <h3>Ask, transcribe, forget</h3>
+        <ul class="marks">
+          <li>The request arrives in chat, so the answer leaves in chat.</li>
+          <li>The next person asks the same question and gets a slightly different answer.</li>
+          <li>The numbers have no provenance, so nobody can audit them.</li>
+          <li>Access is whatever the last person who exported it happened to have.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <div class="card__index">With Siteplan</div>
+        <h3>Ask, publish, rely on it</h3>
+        <ul class="marks marks--teal">
+          <li>The request becomes a task with an owner, linked to an objective.</li>
+          <li>The result becomes an artifact with versions, a source topic and an audit trail.</li>
+          <li>The data is a declared dataset executed as each viewer, so scope is enforced by construction.</li>
+          <li>Anyone with access can pin it, and it stays correct as people and membership change.</li>
+        </ul>
+      </article>
+    </div>
+
+    <blockquote class="pull" style="margin-top:44px">
+      The artifact outlives the conversation that produced it. That single property is the
+      difference between a demo and a system of record.
+      <cite>Design intent</cite>
+    </blockquote>
+  </div>
+</section>
+
+<section class="section section--ink" id="directions">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow eyebrow--light">Where it goes</span>
+      <h2>Four directions, each already reachable by design.</h2>
+      <p>
+        None of these require a rewrite of the core. That is the test of the seams: the next
+        capability should be an addition, not a migration.
+      </p>
+    </div>
+
+    <div class="grid grid--2" style="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.16)">
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">01 · Portability</div>
+        <h3 style="color:#fff">Move a conversation between engines</h3>
+        <p style="color:#a8a8a8">A topic stores provider-neutral events, so the runtime is chosen per run. Credit exhaustion, a better model or a cheaper engine becomes a switch instead of a fork. The resolver already keeps a slot for an automatic router that chooses on budget, cost, capability or model — and records why, so a routed choice stays auditable.</p>
+      </article>
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">02 · Containment</div>
+        <h3 style="color:#fff">Choose isolation per organization</h3>
+        <p style="color:#a8a8a8">The same adapter runs in-process, in a subprocess, in a filesystem sandbox, in a container or on a remote VM. Placement is an organization policy with a resolution chain and a fail-closed validation. A container host is the top tier, not the entry fee.</p>
+      </article>
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">03 · Autonomy</div>
+        <h3 style="color:#fff">Let work happen when nobody is in the room</h3>
+        <p style="color:#a8a8a8">Scheduled, event-bound and objective-bound triggers let an agent maintain a report, watch a threshold or prepare a review — bounded to one hop, with an accountable human owner and a per-organization rate limit.</p>
+      </article>
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">04 · Ownership</div>
+        <h3 style="color:#fff">Model your own domain without a deploy</h3>
+        <p style="color:#a8a8a8">User-defined apps with relationships and permanent storage, on JSON records by default and governed physical tables when volume demands it. The registry is the schema, and an idempotent sync applies it.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="principles">
+  <div class="wrap">
+    <div class="section__head section__head--wide">
+      <span class="eyebrow eyebrow--muted">Principles</span>
+      <h2>What decides the trade-offs.</h2>
+      <p>
+        These are not aspirations. Each one has already rejected a plausible alternative, and the
+        rejection is recorded in the design.
+      </p>
+    </div>
+
+    <div class="principles">
+      <div class="principle">
+        <div class="principle__num">01</div>
+        <h3>Separate the stream from the state</h3>
+        <p>The event log is append-only and authoritative. Canvases, artifacts, pins and tasks are
+        projections that can be rebuilt. A product that treats the current view as the truth cannot
+        replay, cannot audit and cannot recover.</p>
+      </div>
+      <div class="principle">
+        <div class="principle__num">02</div>
+        <h3>Parity in the stream, asymmetry in the power</h3>
+        <p>Agents are addressable senders with audit records, and they can be assigned work exactly
+        like a person. They never authenticate and never hold human permissions. Every agent has a
+        human owner who answers for it.</p>
+      </div>
+      <div class="principle">
+        <div class="principle__num">03</div>
+        <h3>A pin is a placement, never a grant</h3>
+        <p>Visibility is access. If placement granted access, any member of any team could publish
+        into any other team by pinning. Data is executed as the viewer, so the same pin can
+        legitimately show different rows to different people.</p>
+      </div>
+      <div class="principle">
+        <div class="principle__num">04</div>
+        <h3>Never let the model be the security boundary</h3>
+        <p>An agent that can write SQL can read anything the connection can reach. Datasets are
+        validated specs, tools are admitted by capability, and grants are checked where the write
+        happens — not where the prompt is built.</p>
+      </div>
+      <div class="principle">
+        <div class="principle__num">05</div>
+        <h3>Fail closed, and make the failure visible</h3>
+        <p>An isolation floor never falls back to a weaker placement. A broken refresh never blanks a
+        pinned report. A missing permission renders a permission state, not a partial answer. An
+        admin cannot believe they have a boundary they do not have.</p>
+      </div>
+      <div class="principle">
+        <div class="principle__num">06</div>
+        <h3>Separate the axes, then compose them</h3>
+        <p>Engine and placement. Capability and data scope. Canvas, artifact and pin. Runtimes and
+        worker processes. Collapsing an axis buys a week and costs a migration.</p>
+      </div>
+      <div class="principle">
+        <div class="principle__num">07</div>
+        <h3>Split only on a concrete trigger</h3>
+        <p>No service is separated in anticipation. One process owns the schema, the auth plane and
+        the event log until a real scaling, runtime or compliance trigger says otherwise — and the
+        seam is already in place for when it does.</p>
+      </div>
+      <div class="principle">
+        <div class="principle__num">08</div>
+        <h3>Keep the vocabulary honest</h3>
+        <p>A tenant is an Organization, a Team is a Team, and Workspace means only the UI shell. A
+        word that means two things is a bug that ships in every future conversation about the
+        system.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--paper3 section--rule" id="maturity">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <span class="eyebrow">Maturity</span>
+        <h2>Honest about what is built.</h2>
+        <p style="margin-top:16px">
+          A design that cannot be partially shipped is not a design. Siteplan is delivered in
+          slices, each independently verifiable, each leaving the existing tests green.
+        </p>
+        <p>
+          Today the foundation exists: the ASGI application, the actor flag, the organization event
+          log with one write path, the WebSocket consumer with replay and resume, and a working
+          workspace with a CLI agent speaking the Agent Client Protocol.
+        </p>
+        <p>
+          The product layer — objectives, tasks, artifacts, pins, datasets, approvals and triggers —
+          is specified in full and scheduled. The specification is the contract; the slices are how
+          it arrives.
+        </p>
+      </div>
+      <div>
+        <div class="layers">
+          <div class="layer layer--accent">
+            <div class="layer__label">Built</div>
+            <div class="layer__chips">
+              <span class="chip chip--teal">ASGI + Channels</span>
+              <span class="chip chip--teal">event log</span>
+              <span class="chip chip--teal">actor flag</span>
+              <span class="chip chip--teal">WS replay</span>
+              <span class="chip chip--teal">workspace</span>
+              <span class="chip chip--teal">ACP agent</span>
+              <span class="chip chip--teal">placements</span>
+            </div>
+          </div>
+          <div class="layer">
+            <div class="layer__label">Specified</div>
+            <div class="layer__chips">
+              <span class="chip">G-SDUI canvas</span>
+              <span class="chip">approvals</span>
+              <span class="chip">grants</span>
+              <span class="chip">artifacts</span>
+              <span class="chip">pins</span>
+              <span class="chip">datasets</span>
+              <span class="chip">triggers</span>
+              <span class="chip">dynamic apps</span>
+            </div>
+          </div>
+          <div class="layer">
+            <div class="layer__label">Future</div>
+            <div class="layer__chips">
+              <span class="chip">automatic routing</span>
+              <span class="chip">remote placement</span>
+              <span class="chip">external data sources</span>
+            </div>
+          </div>
+        </div>
+        <div class="decision" style="margin-top:26px">
+          <strong>The reference scenario is the contract.</strong> Twelve steps from a human request to
+          an organization-wide pinned artifact. Every one of them has to work on the same domain
+          model — that is how the design is judged.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--ink">
+  <div class="wrap">
+    <div class="section__head section__head--wide" style="margin-bottom:0">
+      <span class="eyebrow eyebrow--light">In one sentence</span>
+      <blockquote class="pull" style="border-color:var(--red);font-size:clamp(1.5rem,3.2vw,2.5rem)">
+        A business application where the work, the data and the agents that act on them share one
+        log, one authorization plane and one accountable owner — so an answer that was asked for
+        once becomes something the organization can keep.
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap band__inner">
+    <h2>Read it from the top, or go straight to the reference scenario.</h2>
+    <div class="band__actions">
+      <a class="btn btn--red" href="/concept/">Start with the concept</a>
+      <a class="btn btn--ghost" href="/design/#reference">Jump to the scenario</a>
+    </div>
+  </div>
+</section>

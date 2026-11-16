@@ -1,0 +1,435 @@
+---
+title: Design
+nav: design
+description: The G-SDUI generative UI protocol, stable widget identity, server-rendered hydration, dataset data binding, dynamic user-defined apps, and the reference scenario that acts as the acceptance criterion.
+layout: default
+---
+<section class="hero hero--page">
+  <div class="wrap hero__grid">
+    <div>
+      <span class="eyebrow">Design</span>
+      <h1>Agents emit a spec. The server draws it.</h1>
+      <p class="hero__lede">
+        The generative UI protocol is versioned, validated on the server, and closed by
+        construction. An agent describes components — never HTML — and the server renders them with
+        the same design system, the same translation catalogue and the same authorization as every
+        other view.
+      </p>
+    </div>
+    <aside class="rail">
+      <div class="rail__item">
+        <div class="rail__num">gsdui/1</div>
+        <div class="rail__label">versioned envelope, closed component list</div>
+      </div>
+      <div class="rail__item">
+        <div class="rail__num">4</div>
+        <div class="rail__label">view modes: GEN_UI, BROWSER, DIFF, LOGS</div>
+      </div>
+      <div class="rail__item">
+        <div class="rail__num">0</div>
+        <div class="rail__label">React dependencies in the renderer</div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="section" id="envelope">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow eyebrow--muted">The protocol</span>
+      <h2>An envelope, and a closed set of widgets.</h2>
+    </div>
+
+    <div class="split">
+      <div>
+        <pre><code>{
+  "protocol": "gsdui/1",
+  "canvas_id": "…",
+  "base_version": 12,
+  "layout_title": { "i18n": "ui.canvas.sales_breakdown" },
+  "view_mode": "GEN_UI",
+  "widgets": []
+}</code></pre>
+        <p class="small muted" style="margin-top:16px">
+          <code>view_mode</code> is one of <code>GEN_UI</code>, <code>BROWSER</code>,
+          <code>DIFF</code> or <code>LOGS</code>. The enum matches the UI exactly — an earlier
+          draft listed four modes in the UI and three in the schema.
+        </p>
+      </div>
+      <div class="stack">
+        <div class="decision">
+          <strong>Every widget has a stable id.</strong> When the agent does not supply one, the
+          server derives it from the canvas and the state key. A re-emitted widget for the same
+          logical slot keeps the same id, so the client patches in place instead of remounting.
+        </div>
+        <div class="decision decision--teal">
+          <strong>Table sort order, scroll position and Alpine state survive updates.</strong> That
+          is the whole point of stable identity, and it is what a positional array cannot give you.
+        </div>
+        <div class="decision">
+          <strong>UI chrome is a translation key. Content is verbatim.</strong> Labels carry i18n
+          keys; the message text and the data values are stored exactly as they arrived.
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap" style="margin-top:40px">
+      <table class="data">
+        <thead><tr><th>Rule</th><th>Consequence</th></tr></thead>
+        <tbody>
+          <tr><td>Rows are records keyed by column</td><td>Column reorder cannot corrupt data. Positional arrays are not allowed.</td></tr>
+          <tr><td>Actions resolve server-side</td><td>The client never supplies code, and the server never trusts the client's copy of a widget.</td></tr>
+          <tr><td>The component whitelist is closed</td><td>Unknown types and unknown props are rejected at validation.</td></tr>
+          <tr><td>Patches are RFC 7386 merge patches</td><td>One widget's props change without touching the rest of the canvas.</td></tr>
+          <tr><td>Text deltas are ephemeral</td><td>The final assembled message is appended once as a TEXT event; deltas are never persisted.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section section--paper3 section--rule" id="binding">
+  <div class="wrap">
+    <div class="section__head section__head--wide">
+      <span class="eyebrow">Data binding</span>
+      <h2>A report that is still a report tomorrow.</h2>
+      <p>
+        A widget carrying inline rows is a screenshot with more steps. Instead, a widget may carry a
+        binding to a dataset, and the server resolves it as the viewer.
+      </p>
+    </div>
+
+    <div class="split">
+      <div>
+        <pre><code>{
+  "id": "w_sales_table",
+  "type": "DataTable",
+  "state_key": "sales.by_region",
+  "props": {
+    "columns": [
+      { "key": "region", "label": { "i18n": "ui.table.region" }, "type": "text" },
+      { "key": "volume", "label": { "i18n": "ui.table.volume" }, "type": "currency" }
+    ],
+    "data": {
+      "dataset": "…",
+      "parameters": { "period": "$param.period", "team": "$param.team" }
+    }
+  }
+}</code></pre>
+      </div>
+      <div>
+        <ul class="marks">
+          <li><strong>The client never calls the dataset</strong> and never receives a query. The server executes it and renders materialised rows.</li>
+          <li><strong>Parameters resolve in order</strong> — the artifact version's declared parameters, then the viewer's widget state, then the default.</li>
+          <li><strong>Rows are paged server-side</strong> with a cursor action, so a large report renders like a small one.</li>
+          <li><strong>A failed query renders that widget's error state</strong> and leaves the rest of the artifact intact. One slow dataset must not blank a pinned report.</li>
+          <li><strong>A missing permission renders a permission state</strong>, never a partial result — a viewer cannot infer rows from an aggregate.</li>
+          <li><strong>A binding must be declared</strong> by the published version, so a payload cannot widen its own access at render time.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid grid--3" style="margin-top:44px">
+      <article class="card">
+        <div class="card__index">Tier 1 · default</div>
+        <h3>JSON records</h3>
+        <p>Rows live in JSONB with a GIN index. Relationships are a relation table. Required and unique constraints are validated before insert. No DDL, no migration risk — and it already delivers permanent storage.</p>
+      </article>
+      <article class="card">
+        <div class="card__index">Tier 2 · opt-in</div>
+        <h3>Physical tables</h3>
+        <p>High-volume models get a real table. The DDL is generated from validated field metadata only, identifiers are slug-derived and pattern-checked, and the change is gated by human approval.</p>
+      </article>
+      <article class="card">
+        <div class="card__index">Governance</div>
+        <h3>Idempotent sync</h3>
+        <p>An idempotent command applies controlled DDL on every deploy. Destructive operations are never automatic, and a drift check fails CI when the registry, generated models and live columns disagree.</p>
+      </article>
+    </div>
+
+    <div class="decision" style="margin-top:32px">
+      <strong>Why not generate a real table for every user-created model by default.</strong> It adds
+      a second schema system outside migrations, patches the app registry, multiplies tables per
+      tenant, and lets a manipulated agent alter shared schema. Flip the default only if the
+      platform's purpose becomes a no-code database rather than a CMS with agent-native app
+      building.
+    </div>
+  </div>
+</section>
+
+<section class="section" id="hydration">
+  <div class="wrap">
+    <div class="split split--end">
+      <div>
+        <span class="eyebrow eyebrow--muted">Hydration</span>
+        <h2>Server-rendered fragments, swapped by widget id.</h2>
+        <p style="margin-top:16px">
+          There is one Django template per widget type. A UI mutation carries the rendered fragment
+          plus props and a sequence number, and the client swaps it in place.
+        </p>
+        <ul class="marks" style="margin-top:22px">
+          <li>Reuses the existing design system instead of duplicating it in JavaScript.</li>
+          <li>Keeps <code>{{ "{% trans %}" }}</code> authoritative — the translation catalogue stays the source of truth.</li>
+          <li>Avoids introducing React into a codebase that has none, on a stack of Tailwind, HTMX and Alpine.</li>
+        </ul>
+      </div>
+      <div class="diagram">
+        <div class="diagram__bar">
+          <span class="diagram__dot"></span><span class="diagram__dot"></span><span class="diagram__dot"></span>
+          <span class="diagram__title">Mutation → fragment → swap</span>
+        </div>
+        <div class="diagram__body">
+          <svg viewBox="0 0 460 250" role="img" aria-label="An agent emits a UI mutation; the server validates it, renders a fragment from a Django template, and sends it with props and sequence. The client swaps the fragment by widget id.">
+            <rect x="1" y="1" width="458" height="248" fill="#ffffff" stroke="#d2d2d2"/>
+            <rect x="20" y="24" width="128" height="54" fill="#151515"/>
+            <text x="32" y="42" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#ee0000" letter-spacing="0.9">AGENT</text>
+            <text x="32" y="56" font-family="Red Hat Mono, monospace" font-size="7" fill="#d2d2d2">UI_MUTATION</text>
+            <text x="32" y="68" font-family="Red Hat Mono, monospace" font-size="7" fill="#9a9a9a">spec, not HTML</text>
+
+            <path d="M148 51 H186" fill="none" stroke="#ee0000" stroke-width="1.4"/>
+            <path d="M180 47 L186 51 L180 55" fill="none" stroke="#ee0000" stroke-width="1.4"/>
+
+            <rect x="192" y="20" width="120" height="62" fill="#fdf2f2" stroke="#ee0000"/>
+            <text x="204" y="38" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#ee0000" letter-spacing="0.9">VALIDATE</text>
+            <text x="204" y="52" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">closed whitelist</text>
+            <text x="204" y="64" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">props + binding</text>
+            <text x="204" y="76" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">grants</text>
+
+            <path d="M312 51 H350" fill="none" stroke="#ee0000" stroke-width="1.4"/>
+            <path d="M344 47 L350 51 L344 55" fill="none" stroke="#ee0000" stroke-width="1.4"/>
+
+            <rect x="356" y="20" width="86" height="62" fill="#ffffff" stroke="#151515"/>
+            <text x="368" y="38" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#151515" letter-spacing="0.9">TEMPLATE</text>
+            <text x="368" y="52" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">one per widget</text>
+            <text x="368" y="64" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">gettext keys</text>
+
+            <path d="M399 82 V112" fill="none" stroke="#6a6e73" stroke-width="1.2"/>
+            <rect x="192" y="112" width="250" height="52" fill="#fafafa" stroke="#d2d2d2"/>
+            <text x="204" y="130" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#005f60" letter-spacing="0.9">HTML FRAGMENT + PROPS + seq</text>
+            <rect x="204" y="140" width="150" height="4" fill="#d2d2d2"/>
+            <rect x="204" y="150" width="100" height="4" fill="#d2d2d2"/>
+
+            <path d="M192 138 H150" fill="none" stroke="#6a6e73" stroke-width="1.2"/>
+            <path d="M156 134 L150 138 L156 142" fill="none" stroke="#6a6e73" stroke-width="1.2"/>
+
+            <rect x="20" y="112" width="128" height="52" fill="#ffffff" stroke="#151515"/>
+            <text x="32" y="130" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#151515" letter-spacing="0.9">CLIENT</text>
+            <text x="32" y="144" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">swap by widget id</text>
+            <text x="32" y="156" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">keep local state</text>
+
+            <rect x="20" y="188" width="420" height="42" fill="#151515"/>
+            <text x="34" y="206" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#ee0000" letter-spacing="0.9">SAME AUTHZ AS THE SIDEBAR RESOLVER</text>
+            <text x="34" y="220" font-family="Red Hat Mono, monospace" font-size="7" fill="#b8b8b8">rendering a pinned artifact needs no topic — artifact, current version, declared bindings</text>
+          </svg>
+        </div>
+        <figcaption class="diagram__caption">
+          <span>No second widget renderer</span>
+          <span>No React</span>
+        </figcaption>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--ink" id="reference">
+  <div class="wrap">
+    <div class="section__head section__head--wide">
+      <span class="eyebrow eyebrow--light">Reference scenario</span>
+      <h2>One missing report, twelve steps, and the model has to survive all of them.</h2>
+      <p>
+        This is the acceptance criterion. The rule for reviewing the design is simple: if a step
+        needs a concept the domain model does not have, the model is wrong — not the scenario.
+      </p>
+    </div>
+
+    <div class="grid grid--4" style="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.16);margin-bottom:34px">
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">Cast</div>
+        <p class="small mb0" style="color:#a8a8a8"><strong style="color:#fff">Northwind</strong> is the organization. <strong style="color:#fff">Sales</strong> is a team. <strong style="color:#fff">APAC Pipeline</strong> is a room.</p>
+      </article>
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">Humans</div>
+        <p class="small" style="color:#a8a8a8"><strong style="color:#fff">Dana</strong> is the organization owner. <strong style="color:#fff">Sam</strong> leads Sales. <strong style="color:#fff">Priya</strong> belongs to a guest organization with a room share.</p>
+      </article>
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">Agent</div>
+        <p class="small" style="color:#a8a8a8"><strong style="color:#fff">analyst</strong> has an OpenAI-compatible default runtime and a CLI fallback, is rostered into the room as its default agent, and is owned by Dana.</p>
+      </article>
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">Data</div>
+        <p class="small" style="color:#a8a8a8">Deals live in a dynamic model. Sam defines the dataset <code style="background:#232323;border-color:#3a3a3a;color:#d2d2d2">deals.by_region</code> with <code style="background:#232323;border-color:#3a3a3a;color:#d2d2d2">period</code> and <code style="background:#232323;border-color:#3a3a3a;color:#d2d2d2">team</code>.</p>
+      </article>
+    </div>
+
+    <div class="loop" style="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.16)">
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">1</div>
+        <div class="loop__title" style="color:#fff">The built-in app is not enough</div>
+        <div class="loop__body" style="color:#a8a8a8">A seeded "Deals by owner" report exists and does not break down by region. Nothing is broken — it is simply not the report Sam needs. This is the moment the product exists for.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">2</div>
+        <div class="loop__title" style="color:#fff">Sam asks</div>
+        <div class="loop__body" style="color:#a8a8a8">A task is created in the room, assigned to the analyst agent and linked to the objective. The assignee is a User, and an agent is a User, so this is the same assignment path a colleague would receive.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">3</div>
+        <div class="loop__title" style="color:#fff">A topic appears</div>
+        <div class="loop__body" style="color:#a8a8a8">The task creates a topic with a required subject and queues an agent run. Sam's first message mentions the agent explicitly.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">4</div>
+        <div class="loop__title" style="color:#fff">The agent queries data without SQL</div>
+        <div class="loop__body" style="color:#a8a8a8">The worker claims the run and executes the resolved runtime. The adapter asks for dataset.query with the dataset id and parameters. The worker checks the capability, intersects the agent's data scope with Sam's, executes the validated spec, and returns rows.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">5</div>
+        <div class="loop__title" style="color:#fff">Preview in the canvas</div>
+        <div class="loop__body" style="color:#a8a8a8">The agent emits a UI mutation whose table widget binds to the dataset. The run appends it, it becomes a canvas version, and column three renders the fragment server-side.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">6</div>
+        <div class="loop__title" style="color:#fff">Sam refines</div>
+        <div class="loop__body" style="color:#a8a8a8">"Add margin, sort by volume." Each turn is an action event plus a new version or a patch. Widget ids are stable, so the table's sort and scroll survive. Optimistic concurrency stops a second run clobbering the canvas.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">7</div>
+        <div class="loop__title" style="color:#fff">Sam publishes to the team</div>
+        <div class="loop__body" style="color:#a8a8a8">Publishing appends ARTIFACT_PUBLISHED, creating the artifact with team visibility, version 1, and a source topic — then ARTIFACT_PINNED at team scope. Nothing was copied, and the canvas remains the working state.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">8</div>
+        <div class="loop__title" style="color:#fff">Dana pins it for the organization</div>
+        <div class="loop__body" style="color:#a8a8a8">A second pin on the same artifact and the same version. A person in an unrelated team now sees it in their sidebar. There is still one artifact and one current version.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">9</div>
+        <div class="loop__title" style="color:#fff">The guest does not see it</div>
+        <div class="loop__body" style="color:#a8a8a8">Priya sees artifacts pinned to that room whose visibility is room-level. Team and organization pins are invisible to her, and the room share never widens artifact visibility.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">10</div>
+        <div class="loop__title" style="color:#fff">The report refreshes itself</div>
+        <div class="loop__body" style="color:#a8a8a8">A scheduled trigger re-runs the task each week and publishes version 2. Both pins show v2, because a pin points at the artifact. If v2 fails validation, the current version stays at 1 and the failure is a run-status event.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">11</div>
+        <div class="loop__title" style="color:#fff">Two viewers, two row sets</div>
+        <div class="loop__body" style="color:#a8a8a8">A colleague opens the pinned report from the organization sidebar with no topic in view. The render endpoint executes the bindings as that colleague. Sam sees APAC and NA; the colleague sees only rows their scope allows, or a permission state.</div>
+      </div>
+      <div class="loop__row" style="background:#1b1b1b">
+        <div class="loop__mark">12</div>
+        <div class="loop__title" style="color:#fff">The report is now part of the system</div>
+        <div class="loop__body" style="color:#a8a8a8">Addressable by id, linked to an objective, produced by an auditable run, refreshable on a schedule, pinnable at any scope, with row access that follows the viewer. A second agent, a third adapter or a new team changes none of that.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="dynamic">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow eyebrow--muted">Dynamic apps</span>
+      <h2>User-defined apps are a first-class feature, not a footnote.</h2>
+      <p>
+        Definitions are data. The registry is the durable source of truth for schemas, and it is
+        what lets an organization model its own domain without a deploy.
+      </p>
+    </div>
+
+    <div class="split">
+      <div>
+        <div class="layers">
+          <div class="layer layer--accent">
+            <div class="layer__label">App</div>
+            <div><strong>DynamicApp</strong><p class="small muted" style="margin:4px 0 0">A named bundle an organization owns.</p></div>
+          </div>
+          <div class="layer">
+            <div class="layer__label">Model</div>
+            <div><strong>DynamicModel</strong><p class="small muted" style="margin:4px 0 0">A schema versioned against a storage tier: JSON by default, physical as an approval-gated opt-in.</p></div>
+          </div>
+          <div class="layer">
+            <div class="layer__label">Field</div>
+            <div><strong>DynamicField</strong><p class="small muted" style="margin:4px 0 0">A typed field — text, integer, decimal, boolean, date, datetime, JSON, or a relation to another model.</p></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <ul class="marks">
+          <li><strong>Events referencing user-defined records carry a stable entity id and record id</strong> — never a Django content type — so the log survives a generated-app rebuild or a rename.</li>
+          <li><strong>Access is organization-scoped and narrowed by data scope</strong>, so a team's records are not readable by every member of the organization.</li>
+          <li><strong>Agents reach dynamic data only through grants</strong>, the same row scope, and the approval policy.</li>
+          <li><strong>Tier 2 DDL comes from validated metadata only</strong>, never from user SQL, and destructive changes never happen automatically.</li>
+        </ul>
+        <div class="decision decision--teal" style="margin-top:24px">
+          <strong>Text shown in the UI is always wrapped for translation.</strong> A kind names the
+          shape, not the business: a sales team, a club and a charity all use the same "report"
+          entity with their own label.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--paper3 section--rule" id="workspace-ui">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow">The workspace, in practice</span>
+      <h2>What the shipped slice already does.</h2>
+      <p>
+        The first four roadmap steps are built: ASGI, the actor flag, the organization event log and
+        the topic WebSocket consumer — plus a working workspace and a CLI agent over the Agent Client
+        Protocol.
+      </p>
+    </div>
+
+    <div class="grid grid--3">
+      <article class="card">
+        <div class="card__index">Live</div>
+        <h3>A stream that recovers itself</h3>
+        <p>The socket reconnects with backoff and re-subscribes from the last sequence. Visibility and online events re-subscribe to catch up. A stale page cannot hide behind a dead socket.</p>
+      </article>
+      <article class="card">
+        <div class="card__index">Live</div>
+        <h3>Streamed replies, honest records</h3>
+        <p>Token chunks arrive as transient deltas into a streaming bubble. The persisted final message replaces it. A mid-stream reload loses partial text by design — the final message is the record.</p>
+      </article>
+      <article class="card">
+        <div class="card__index">Live</div>
+        <h3>Per-topic model selection</h3>
+        <p>The composer hides model choice unless the message mentions a rostered agent, so a plain room note never changes the topic model. A switch appends an event and renders in the timeline.</p>
+      </article>
+      <article class="card">
+        <div class="card__index">Live</div>
+        <h3>Two CLIs, one client</h3>
+        <p>The ACP client negotiates session options: one CLI accepts a set_model call, the other implements only the standard config option. One client serves both, with a fallback on method-not-found.</p>
+      </article>
+      <article class="card">
+        <div class="card__index">Live</div>
+        <h3>Invocation as a seam</h3>
+        <p>An agent process receives only PATH, HOME, USER, SHELL, locale, terminal and the XDG directories. The server's database URL, Redis URL and secret key are deliberately withheld, and a test pins it.</p>
+      </article>
+      <article class="card">
+        <div class="card__index">Live</div>
+        <h3>Failures you can read</h3>
+        <p>A missing binary, a crash before the handshake and a hang each record an error event that names the cause and the evidence. Before this, a failed run looked like the agent ignoring you.</p>
+      </article>
+    </div>
+
+    <p class="small muted" style="margin-top:24px">
+      Still ahead: approvals, secrets and per-capability grants; the canvas and the full protocol;
+      the JSON API; the worker and the executor placements; and the product layer of objectives,
+      tasks, artifacts and datasets.
+    </p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap band__inner">
+    <h2>Next: the principles that decide the trade-offs, and where this goes.</h2>
+    <div class="band__actions">
+      <a class="btn btn--red" href="/vision/">Read the vision</a>
+      <a class="btn btn--ghost" href="/concept/">Back to the concept</a>
+    </div>
+  </div>
+</section>

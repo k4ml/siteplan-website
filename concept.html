@@ -1,0 +1,408 @@
+---
+title: The concept
+nav: concept
+description: Siteplan's concept in full - the organization hierarchy, the topic tree, the product layer of objectives, tasks, artifacts and datasets, and why agents are actors rather than a sidebar.
+layout: default
+---
+<section class="hero hero--page">
+  <div class="wrap hero__grid">
+    <div>
+      <span class="eyebrow">Concept</span>
+      <h1>The agent is a participant, not a feature.</h1>
+      <p class="hero__lede">
+        Siteplan's whole design follows from one decision: an AI agent is a first-class actor in
+        the same system as a human. Not a separate service, not a chat panel, not a second
+        permission model — the same room, the same event stream, the same audit trail, with
+        deliberately asymmetric authority.
+      </p>
+    </div>
+    <aside class="rail">
+      <div class="rail__item">
+        <div class="rail__num">1</div>
+        <div class="rail__label">event stream, append-only</div>
+      </div>
+      <div class="rail__item">
+        <div class="rail__num">2</div>
+        <div class="rail__label">axes of access: capability, data scope</div>
+      </div>
+      <div class="rail__item">
+        <div class="rail__num">4</div>
+        <div class="rail__label">separate concerns per agent</div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <span class="eyebrow eyebrow--muted">Starting point</span>
+        <h2>What the product is built on.</h2>
+        <p style="margin-top:16px">
+          Siteplan began as a Wagtail CMS that also works as a foundation for building Django
+          applications. That origin is not incidental — it explains the constraints that shape the
+          whole design.
+        </p>
+        <p>
+          The portal is a CMS. The agent-native layer is built on top of it without replacing it.
+          The existing Wagtail admin, the CRUD views and the current authentication keep working.
+          Nothing in the agent direction requires a second framework, a second schema owner or a
+          second place to log in.
+        </p>
+      </div>
+      <div class="stack">
+        <div class="decision">
+          <strong>One user model.</strong> Django allows exactly one <code>AbstractUser</code>, and
+          <code>AUTH_USER_MODEL</code> cannot be swapped after the first migration. Agents extend
+          the existing <code>siteplan_user.User</code> — they do not get their own identity table.
+        </div>
+        <div class="decision decision--teal">
+          <strong>One schema owner.</strong> A second service importing Django models shares the
+          schema but deploys on a different schedule. That is version skew for no benefit.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--paper3 section--rule">
+  <div class="wrap">
+    <div class="section__head section__head--wide">
+      <span class="eyebrow">The hierarchy</span>
+      <h2>An organization contains teams. A team contains rooms. A room contains topics.</h2>
+      <p>
+        The tenant is an <code>Organization</code>. A company, a charity, a club and a government
+        body are all the same entity. Organizations can nest, so a holding company has
+        subsidiaries, and one organization can share a room with another — which covers clients and
+        vendors without merging their accounts.
+      </p>
+    </div>
+
+    <div class="layers">
+      <div class="layer layer--accent">
+        <div class="layer__label">Tenant</div>
+        <div>
+          <strong>Organization</strong>
+          <p class="small muted" style="margin:4px 0 0">What an entity signs up for. It owns the agent roster, the credentials, the user-defined apps and the spend. Can nest, so subsidiaries are structural rather than a second root.</p>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer__label">Grouping</div>
+        <div>
+          <strong>Team</strong>
+          <p class="small muted" style="margin:4px 0 0">Who works together inside the organization. Deliberately not called a "Department" — the organization names its own, so a company types "Sales" and a club types "Beginners".</p>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer__label">Collaboration</div>
+        <div>
+          <strong>Room</strong>
+          <p class="small muted" style="margin:4px 0 0">Where work happens. Belongs to a team, or directly to the organization when it is company-wide. Holds artifacts that outlive any one conversation.</p>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer__label">Conversation</div>
+        <div>
+          <strong>Topic</strong>
+          <p class="small muted" style="margin:4px 0 0">The conversation unit, and always topical. Its subject is required, so a branch cannot exist without naming what it is about.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision" style="margin-top:32px">
+      <strong>"Workspace" means the UI shell, and only the UI shell.</strong> The tenant word is
+      <code>Organization</code>. Keeping that vocabulary separate is what stops a five-level
+      hierarchy with two roots to explain.
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow eyebrow--muted">Conversation, modelled properly</span>
+      <h2>A topic tree, not a channel with side threads.</h2>
+      <p>
+        Slack's shape — a main stream plus threads hanging off it — splits a discussion into two
+        places and loses topicality. Siteplan makes the fork the only way to branch.
+      </p>
+    </div>
+
+    <div class="split">
+      <div class="diagram">
+        <div class="diagram__bar">
+          <span class="diagram__dot"></span><span class="diagram__dot"></span><span class="diagram__dot"></span>
+          <span class="diagram__title">APAC Pipeline · room</span>
+        </div>
+        <div class="diagram__body">
+          <svg viewBox="0 0 480 300" role="img" aria-label="A room containing a tree of topics. The root topic forks into a child topic at a specific event, and the child keeps a required subject.">
+            <rect x="1" y="1" width="478" height="298" fill="#ffffff" stroke="#d2d2d2"/>
+            <text x="18" y="26" font-family="Red Hat Mono, monospace" font-size="8" fill="#6a6e73" letter-spacing="1.2">ROOM</text>
+            <rect x="18" y="34" width="444" height="248" fill="#fafafa" stroke="#d2d2d2"/>
+
+            <rect x="34" y="52" width="190" height="64" fill="#ffffff" stroke="#151515"/>
+            <rect x="34" y="52" width="4" height="64" fill="#ee0000"/>
+            <text x="48" y="70" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#ee0000" letter-spacing="0.9">TOPIC · ROOT</text>
+            <text x="48" y="86" font-family="Red Hat Display, sans-serif" font-size="10" font-weight="700" fill="#151515">Region breakdown for APAC</text>
+            <rect x="48" y="94" width="126" height="4" fill="#d2d2d2"/>
+            <rect x="48" y="103" width="88" height="4" fill="#d2d2d2"/>
+
+            <path d="M224 84 H258 V196 H262" fill="none" stroke="#ee0000" stroke-width="1.5"/>
+            <circle cx="224" cy="84" r="3.5" fill="#ee0000"/>
+            <text x="232" y="76" font-family="Red Hat Mono, monospace" font-size="6.5" fill="#6a6e73">FORKED AT seq 4</text>
+
+            <rect x="262" y="164" width="182" height="64" fill="#ffffff" stroke="#151515"/>
+            <rect x="262" y="164" width="4" height="64" fill="#005f60"/>
+            <text x="276" y="182" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#005f60" letter-spacing="0.9">TOPIC · CHILD</text>
+            <text x="276" y="198" font-family="Red Hat Display, sans-serif" font-size="10" font-weight="700" fill="#151515">Margin by region</text>
+            <rect x="276" y="206" width="112" height="4" fill="#d2d2d2"/>
+            <rect x="276" y="215" width="76" height="4" fill="#d2d2d2"/>
+
+            <rect x="34" y="136" width="190" height="46" fill="#ffffff" stroke="#d2d2d2"/>
+            <text x="48" y="153" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#00645f" letter-spacing="0.9">TOPIC · CONVERSATION</text>
+            <text x="48" y="168" font-family="Red Hat Display, sans-serif" font-size="9.5" font-weight="700" fill="#151515">Weekly pipeline review</text>
+
+            <rect x="34" y="200" width="190" height="46" fill="#ffffff" stroke="#d2d2d2" stroke-dasharray="4 3"/>
+            <text x="48" y="217" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#6a6e73" letter-spacing="0.9">TOPIC · ACTIVITY</text>
+            <text x="48" y="232" font-family="Red Hat Display, sans-serif" font-size="9" fill="#6a6e73">Room-scoped work events</text>
+          </svg>
+        </div>
+        <figcaption class="diagram__caption">
+          <span>Fork carries a required subject</span>
+          <span>Child reads ancestors, not a copy</span>
+        </figcaption>
+      </div>
+
+      <div>
+        <ul class="marks">
+          <li><strong>A fork writes a <code>FORKED</code> event in the parent</strong> at the exact message being forked, and creates the child with a parent and a fork anchor.</li>
+          <li><strong>The child does not copy history.</strong> Its context is the ancestor chain truncated at each fork anchor, then its own events — so the log stays append-only and provenance stays intact.</li>
+          <li><strong>An <code>ACTIVITY</code> topic holds room-scoped work</strong> that belongs to no conversation — a task created directly in a room, an objective changing state. It keeps ordering and replayability without a nullable topic column.</li>
+          <li><strong>Topics are adapter-agnostic.</strong> They store provider-neutral events, so a different runtime can answer a later turn in the same topic.</li>
+        </ul>
+        <div class="decision" style="margin-top:26px">
+          <strong>A topic can move between engines.</strong> Start on an OpenAI-compatible
+          adapter, switch to a CLI agent when credits run out, and keep the same history — because
+          the log never stored a provider's wire format.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--ink">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow eyebrow--light">The product layer</span>
+      <h2>Why, what, and the durable result.</h2>
+      <p>
+        The hierarchy says where work happens. It does not say why. Four entities carry that:
+        objectives, tasks, artifacts and datasets.
+      </p>
+    </div>
+
+    <div class="grid grid--4" style="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.16)">
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">Why</div>
+        <h3 style="color:#fff">Objective</h3>
+        <p style="color:#a8a8a8">A measurable outcome. The unit a human and an agent are both pointed at, and the natural place to attach progress. Progress can be typed in, or read from a dataset.</p>
+      </article>
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">What</div>
+        <h3 style="color:#fff">Task</h3>
+        <p style="color:#a8a8a8">A unit of requested work assigned to a human or an agent. Same row, same audit. A task is not a conversation — it may span several topics and several runs.</p>
+      </article>
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">Result</div>
+        <h3 style="color:#fff">Artifact</h3>
+        <p style="color:#a8a8a8">Durable, rendered, pinnable content. One row per logical thing, with published versions. An artifact outlives the topic that produced it.</p>
+      </article>
+      <article class="card" style="background:#1b1b1b">
+        <div class="card__index">Source</div>
+        <h3 style="color:#fff">Dataset</h3>
+        <p style="color:#a8a8a8">A validated, parameterised query over platform data. Never a SQL string. Executed as the viewer, so a report stays correct for every person who opens it.</p>
+      </article>
+    </div>
+
+    <p class="small" style="margin-top:24px;color:#8d8d8d">
+      Artifacts, objectives, tasks and datasets are organization-owned. Only a pin is scope-specific — and a pin is placement, never an access grant.
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section__head section__head--wide">
+      <span class="eyebrow eyebrow--muted">The bottleneck the concept removes</span>
+      <h2>Three lifetimes that products usually collapse into one.</h2>
+      <p>
+        A canvas is where content is authored. An artifact is what survives. A pin is where it is
+        placed. Each has a different lifetime, and the chain between them is strict.
+      </p>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Concept</th><th>Lifetime</th><th>What it means</th><th>What it is not</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Canvas</td>
+            <td>Topic-scoped, scratch</td>
+            <td>The persistent state of a room while work is in progress, with versions produced by events.</td>
+            <td>Not pinnable. It is working state with a working title.</td>
+          </tr>
+          <tr>
+            <td>Artifact</td>
+            <td>Durable, versioned</td>
+            <td>A logical thing — a report, a view, a document — that can be published repeatedly.</td>
+            <td>Not a canvas row. If it were, it would inherit the canvas's scratch lifetime.</td>
+          </tr>
+          <tr>
+            <td>Pin</td>
+            <td>Placement only</td>
+            <td>A sidebar position at personal, room, team or organization scope.</td>
+            <td>Not an access grant, and not a copy of the artifact.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="split" style="margin-top:44px">
+      <div class="decision">
+        <strong>Visibility gates access. Placement never widens it.</strong> If pinning an artifact
+        into a room made it readable there, any member of any team could publish into any other
+        team by pinning.
+      </div>
+      <div class="decision decision--teal">
+        <strong>One artifact, many placements.</strong> Copying per scope means versions drift, the
+        same report renders differently in two rooms, and a refresh has to be applied N times.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--paper3 section--rule">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow">Authority</span>
+      <h2>Parity in the stream. Asymmetry in the power.</h2>
+      <p>
+        Humans and agents are both addressable senders with audit records. They do not share
+        permissions. That distinction is the single most important line in the design.
+      </p>
+    </div>
+
+    <div class="grid grid--2">
+      <article class="card">
+        <div class="card__index">What parity means</div>
+        <ul class="marks">
+          <li>Both can be assigned a task, because a task's assignee is a <code>User</code>.</li>
+          <li>Both appear in a room's roster and can be addressed by mention.</li>
+          <li>Both emit events that carry a sender, a run and a cause.</li>
+          <li>An agent can own accountability: every agent has a human owner who answers for it.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <div class="card__index">What asymmetry means</div>
+        <ul class="marks marks--teal">
+          <li>Agents never authenticate, and never receive staff or superuser flags.</li>
+          <li>Agents hold capabilities — coarse, default-deny, expiring and revocable.</li>
+          <li>Irreversible actions need a human approval bound to the exact arguments.</li>
+          <li>An agent's data scope is the intersection of its grant and the requester's scope.</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="decision" style="margin-top:32px">
+      <strong>An agent may never read a row the person who asked could not read.</strong>
+      Without that rule, an autonomous agent with plausible prompting becomes a privilege
+      escalator.
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section__head">
+      <span class="eyebrow eyebrow--muted">Addressing</span>
+      <h2>An agent speaks when it is spoken to — or when the room makes it obvious.</h2>
+      <p>
+        Resolution is one function with three ordered rules. Nothing about it is stored, so it
+        cannot drift from membership.
+      </p>
+    </div>
+
+    <div class="loop">
+      <div class="loop__row">
+        <div class="loop__mark">1</div>
+        <div class="loop__title">Explicit mentions</div>
+        <div class="loop__body">Mentions from the payload, in order. An empty mention list means "no agent" — that is how a human sends a note without starting a run.</div>
+      </div>
+      <div class="loop__row">
+        <div class="loop__mark">2</div>
+        <div class="loop__title">The direct room</div>
+        <div class="loop__body">Exactly one human member and exactly one active agent, counted over effective membership. Every message from that human is addressed to that agent, because a 1:1 with a colleague should not require ceremony.</div>
+      </div>
+      <div class="loop__row">
+        <div class="loop__mark">3</div>
+        <div class="loop__title">Otherwise nobody</div>
+        <div class="loop__body">An unaddressed message appends to the log and stops. A room-level agent that replies to everything is a bill and a noise source.</div>
+      </div>
+    </div>
+
+    <div class="split" style="margin-top:40px">
+      <div>
+        <div class="decision">
+          <strong>The rule expires by itself.</strong> The moment a second human or a second agent
+          joins, a guest organization joins the room, or the agent is paused, the direct-room rule
+          stops applying. It is derived on every message and never stored.
+        </div>
+      </div>
+      <div>
+        <ul class="marks">
+          <li>The composer states the resolved target, so an implicit run is never a surprise.</li>
+          <li>Agent-authored events never start a run, so a direct room cannot talk to itself.</li>
+          <li>One active run per topic: a fast typer cannot race two runs against one canvas.</li>
+          <li>Rostering an agent into a room is a human act requiring <code>agent.manage</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--ink">
+  <div class="wrap split">
+    <div>
+      <span class="eyebrow eyebrow--light">Proactivity, bounded</span>
+      <h2>An agent can act when nobody is in the room. Once.</h2>
+      <p style="margin-top:16px">
+        A run triggered by an event covers "someone caused this". It does not cover "nobody was
+        here". So a scheduled, event-bound or objective-bound trigger is an explicit row — and it
+        is deliberately one hop only.
+      </p>
+      <ul class="marks" style="margin-top:24px">
+        <li>A trigger fire claims a run through the same queue as any other run.</li>
+        <li>A trigger-started run may not start another run by mentioning an agent.</li>
+        <li>An agent may not trigger another agent.</li>
+      </ul>
+    </div>
+    <blockquote class="pull" style="border-color:var(--red)">
+      Chains are what turn a helpful agent into an unbounded bill. Delegation beyond one hop needs
+      an explicit human task.
+      <cite>Design rule, section 4.10</cite>
+    </blockquote>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap band__inner">
+    <h2>Next: how that concept becomes one process, one log and one write path.</h2>
+    <div class="band__actions">
+      <a class="btn btn--red" href="/architecture/">Read the architecture</a>
+      <a class="btn btn--ghost" href="/design/">See the design</a>
+    </div>
+  </div>
+</section>

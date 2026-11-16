@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <rect x="0" y="0" width="1200" height="10" fill="#ee0000"/>
+  <rect x="0" y="10" width="264" height="8" fill="#151515"/>
+
+  <g transform="translate(80 88)">
+    <rect x="0" y="0" width="34" height="34" fill="#ee0000"/>
+    <rect x="42" y="0" width="34" height="34" fill="#151515"/>
+    <rect x="0" y="42" width="34" height="34" fill="#151515"/>
+    <rect x="44" y="44" width="30" height="30" fill="none" stroke="#151515" stroke-width="4" opacity="0.5"/>
+  </g>
+  <text x="80" y="212" font-family="Red Hat Display, Helvetica Neue, Arial, sans-serif" font-size="38" font-weight="800" fill="#151515" letter-spacing="-0.5">Siteplan</text>
+  <text x="80" y="246" font-family="Red Hat Mono, monospace" font-size="16" fill="#6a6e73" letter-spacing="4">AGENT-NATIVE PLATFORM</text>
+
+  <text x="80" y="352" font-family="Red Hat Display, Helvetica Neue, Arial, sans-serif" font-size="68" font-weight="800" fill="#151515" letter-spacing="-2">Plan the business.</text>
+  <text x="80" y="428" font-family="Red Hat Display, Helvetica Neue, Arial, sans-serif" font-size="68" font-weight="800" fill="#ee0000" letter-spacing="-2">Agents do the work.</text>
+
+  <text x="80" y="492" font-family="Red Hat Text, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#3c3f42">One event stream. One workspace. One authorization plane.</text>
+
+  <g transform="translate(80 536)">
+    <rect x="0" y="0" width="4" height="18" fill="#ee0000"/>
+    <text x="18" y="14" font-family="Red Hat Mono, monospace" font-size="15" fill="#6a6e73" letter-spacing="1">Django · Wagtail · Channels · HTMX</text>
+  </g>
+
+  <g transform="translate(760 120)">
+    <rect x="0" y="0" width="360" height="400" fill="#fafafa" stroke="#d2d2d2"/>
+    <rect x="0" y="0" width="360" height="30" fill="#151515"/>
+    <rect x="14" y="11" width="40" height="8" fill="#ee0000"/>
+    <rect x="62" y="11" width="64" height="8" fill="#6a6e73"/>
+
+    <rect x="14" y="48" width="92" height="336" fill="#f4f4f4" stroke="#d2d2d2"/>
+    <rect x="112" y="48" width="132" height="336" fill="#ffffff" stroke="#d2d2d2"/>
+    <rect x="250" y="48" width="96" height="336" fill="#fafafa" stroke="#d2d2d2"/>
+
+    <rect x="24" y="62" width="72" height="12" fill="#151515"/>
+    <rect x="24" y="80" width="72" height="10" fill="#ffffff" stroke="#d2d2d2"/>
+    <rect x="24" y="96" width="72" height="10" fill="#ffffff" stroke="#d2d2d2"/>
+    <rect x="24" y="120" width="72" height="20" fill="#fdf2f2" stroke="#ee0000"/>
+    <rect x="30" y="126" width="7" height="7" fill="#ee0000"/>
+    <rect x="42" y="126" width="42" height="4" fill="#151515"/>
+    <rect x="24" y="146" width="72" height="20" fill="#ffffff" stroke="#d2d2d2"/>
+    <rect x="30" y="152" width="7" height="7" fill="#005f60"/>
+    <rect x="42" y="152" width="36" height="4" fill="#151515"/>
+
+    <rect x="122" y="62" width="112" height="24" fill="#ffffff" stroke="#d2d2d2"/>
+    <rect x="122" y="92" width="112" height="38" fill="#fafafa" stroke="#d2d2d2"/>
+    <rect x="122" y="136" width="112" height="32" fill="#ffffff" stroke="#ee0000"/>
+    <rect x="222" y="144" width="24" height="12" fill="#ee0000"/>
+    <rect x="122" y="174" width="112" height="20" fill="#fafafa" stroke="#d2d2d2"/>
+    <rect x="122" y="300" width="112" height="60" fill="#ffffff" stroke="#151515"/>
+    <rect x="222" y="342" width="20" height="12" fill="#ee0000"/>
+
+    <rect x="260" y="62" width="76" height="10" fill="#ffffff" stroke="#d2d2d2"/>
+    <rect x="260" y="80" width="76" height="72" fill="#ffffff" stroke="#d2d2d2"/>
+    <rect x="268" y="92" width="30" height="5" fill="#ee0000"/>
+    <rect x="300" y="92" width="28" height="5" fill="#d2d2d2"/>
+    <rect x="268" y="104" width="20" height="5" fill="#ee0000" opacity="0.75"/>
+    <rect x="290" y="104" width="38" height="5" fill="#d2d2d2"/>
+    <rect x="268" y="116" width="42" height="5" fill="#005f60"/>
+    <rect x="312" y="116" width="16" height="5" fill="#d2d2d2"/>
+    <rect x="268" y="128" width="34" height="5" fill="#ee0000" opacity="0.5"/>
+    <rect x="304" y="128" width="24" height="5" fill="#d2d2d2"/>
+    <rect x="260" y="160" width="76" height="44" fill="#151515"/>
+    <rect x="268" y="170" width="40" height="4" fill="#ee0000"/>
+    <rect x="268" y="182" width="56" height="3" fill="#6a6e73"/>
+  </g>
+</svg>

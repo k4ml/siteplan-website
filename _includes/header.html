@@ -1,0 +1,41 @@
+<header class="site-header" data-header>
+  <div class="wrap site-header__inner">
+    <a class="brand" href="/" aria-label="Siteplan home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="30" height="30" role="presentation">
+          <rect x="2" y="2" width="12" height="12" fill="#ee0000"></rect>
+          <rect x="18" y="2" width="12" height="12" fill="currentColor" opacity="0.92"></rect>
+          <rect x="2" y="18" width="12" height="12" fill="currentColor" opacity="0.92"></rect>
+          <rect x="19" y="19" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" opacity="0.55"></rect>
+        </svg>
+      </span>
+      <span class="brand__text">
+        <span class="brand__name">Siteplan</span>
+        <span class="brand__sub">Agent-native platform</span>
+      </span>
+    </a>
+
+    <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="nav-toggle__label">Menu</span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" data-nav aria-label="Primary">
+      <ul class="site-nav__list">
+        <li>
+          <a class="site-nav__link{% if page.nav == 'concept' %} is-active{% endif %}" href="/concept/"{% if page.nav == 'concept' %} aria-current="page"{% endif %}>Concept</a>
+        </li>
+        <li>
+          <a class="site-nav__link{% if page.nav == 'architecture' %} is-active{% endif %}" href="/architecture/"{% if page.nav == 'architecture' %} aria-current="page"{% endif %}>Architecture</a>
+        </li>
+        <li>
+          <a class="site-nav__link{% if page.nav == 'design' %} is-active{% endif %}" href="/design/"{% if page.nav == 'design' %} aria-current="page"{% endif %}>Design</a>
+        </li>
+        <li>
+          <a class="site-nav__link{% if page.nav == 'vision' %} is-active{% endif %}" href="/vision/"{% if page.nav == 'vision' %} aria-current="page"{% endif %}>Vision</a>
+        </li>
+      </ul>
+      <a class="btn btn--red btn--sm site-nav__cta" href="/architecture/#roadmap">Roadmap</a>
+    </nav>
+  </div>
+</header>
