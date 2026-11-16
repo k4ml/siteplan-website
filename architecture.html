@@ -68,7 +68,7 @@ layout: default
           <tr>
             <td>Celery for agent runs</td>
             <td><span class="chip">Deferred</span></td>
-            <td>Postgres <code>SKIP LOCKED</code> plus a Redis wake-up is enough for the first release, and Celery can replace the worker behind the same interface.</td>
+            <td>PostgreSQL <code>SKIP LOCKED</code> plus a Redis wake-up is enough for the first release, and Celery can replace the worker behind the same interface.</td>
           </tr>
         </tbody>
       </table>
@@ -99,7 +99,7 @@ layout: default
       <span class="eyebrow eyebrow--light">Topology</span>
       <h2>One image, two processes, two data services.</h2>
       <p>
-        Postgres is the truth. Redis carries fan-out and wakes the worker. The browser talks HTTP
+        PostgreSQL is the truth. Redis carries fan-out and wakes the worker. The browser talks HTTP
         and WebSocket to the same application.
       </p>
     </div>
@@ -110,7 +110,7 @@ layout: default
         <span class="diagram__title">System topology</span>
       </div>
       <div class="diagram__body" style="background:#1b1b1b">
-        <svg viewBox="0 0 900 530" role="img" aria-label="Topology: the browser workspace connects over HTTP and WebSocket to a Django ASGI application that contains HTTP views, WebSocket consumers and a JSON API, all writing through one append_event function. Postgres holds the event log and projections; Redis carries fan-out; a separate agent worker process from the same image claims runs.">
+        <svg viewBox="0 0 900 530" role="img" aria-label="Topology: the browser workspace connects over HTTP and WebSocket to a Django ASGI application that contains HTTP views, WebSocket consumers and a JSON API, all writing through one append_event function. PostgreSQL holds the event log and projections; Redis carries fan-out; a separate agent worker process from the same image claims runs.">
           <rect x="1" y="1" width="898" height="528" fill="none" stroke="#3a3a3a"/>
 
           <rect x="24" y="22" width="852" height="86" fill="none" stroke="#6a6e73"/>
@@ -155,13 +155,13 @@ layout: default
           <path d="M650 326 V386" fill="none" stroke="#6a6e73" stroke-width="1.2"/>
           <path d="M222 386 L226 392 L230 386" fill="#6a6e73" stroke="none"/>
           <path d="M646 386 L650 392 L654 386" fill="#6a6e73" stroke="none"/>
-          <text x="238" y="350" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#9a9a9a" letter-spacing="0.4">Postgres · truth</text>
+          <text x="238" y="350" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#9a9a9a" letter-spacing="0.4">PostgreSQL · truth</text>
           <text x="238" y="362" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">durable before fan-out</text>
           <text x="662" y="350" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#9a9a9a" letter-spacing="0.4">Redis · fan-out</text>
           <text x="662" y="362" font-family="Red Hat Mono, monospace" font-size="7" fill="#6a6e73">carries only the seq</text>
 
           <rect x="44" y="398" width="384" height="112" fill="#232323" stroke="#6a6e73"/>
-          <text x="58" y="418" font-family="Red Hat Mono, monospace" font-size="8.5" fill="#ffffff" letter-spacing="1">POSTGRES</text>
+          <text x="58" y="418" font-family="Red Hat Mono, monospace" font-size="8.5" fill="#ffffff" letter-spacing="1">POSTGRESQL</text>
           <text x="58" y="434" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">event log · projections</text>
           <text x="58" y="448" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">tenancy · agent config</text>
           <text x="58" y="462" font-family="Red Hat Mono, monospace" font-size="7.5" fill="#a8a8a8">runs · objectives · artifacts</text>
@@ -197,7 +197,7 @@ layout: default
           <li><strong>A row lock on the topic</strong> serialises writers, so <code>seq</code> is gapless and monotonic across instances.</li>
           <li><strong>An idempotency key</strong> of <code>(topic, client_event_id)</code> returns the original event after a retry.</li>
           <li><strong>Agent grants are checked at append time</strong>, not at prompt time, so a compromised runtime cannot escalate by emitting an event.</li>
-          <li><strong>Fan-out happens after commit</strong> and carries only the <code>seq</code>; subscribers re-read the row from Postgres.</li>
+          <li><strong>Fan-out happens after commit</strong> and carries only the <code>seq</code>; subscribers re-read the row from PostgreSQL.</li>
         </ul>
       </div>
 
@@ -269,7 +269,7 @@ layout: default
           <div class="loop__row">
             <div class="loop__mark">1</div>
             <div class="loop__title">Authorise</div>
-            <div class="loop__body">The consumer checks membership, then replays <code>seq &gt; n</code> from Postgres in bounded pages.</div>
+            <div class="loop__body">The consumer checks membership, then replays <code>seq &gt; n</code> from PostgreSQL in bounded pages.</div>
           </div>
           <div class="loop__row">
             <div class="loop__mark">2</div>
